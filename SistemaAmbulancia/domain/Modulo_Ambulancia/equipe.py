@@ -1,4 +1,4 @@
-from Modulo_Usuario.socorrista import Socorrista
+from ..Modulo_Usuario.socorrista import Socorrista
 
 class Equipe:
 

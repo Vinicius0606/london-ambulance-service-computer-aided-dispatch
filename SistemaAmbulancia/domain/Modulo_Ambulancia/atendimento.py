@@ -18,3 +18,4 @@ class Atendimento:
 
     def finalizarAtendimento():
         pass
+

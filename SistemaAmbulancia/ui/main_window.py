@@ -4,6 +4,7 @@ QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushB
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QPixmap, QIcon
 from datetime import datetime, timedelta
+from domain.Modulo_Mapa.mapa import Mapa
 
 
 class JanelaPrincipal(QMainWindow):
@@ -14,6 +15,8 @@ class JanelaPrincipal(QMainWindow):
 
         self.larguraTela = telaUsuarioTamanho.width()
         self.alturaTela = telaUsuarioTamanho.height()
+
+        self.mapa = Mapa([])
 
         self.setWindowTitle("Sistema de Ambulância")
 
@@ -299,16 +302,13 @@ class JanelaPrincipal(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(0,20,0,50)
         layout.setSpacing(0)
+        
+        mapa_frame = self.mapa.retornar_mapa_QWidget()
 
-        label_image = QLabel()
+        mapa_frame.setFixedWidth(self.larguraTela / 3)
+        mapa_frame.setFixedHeight(self.larguraTela / 4)
 
-        label_image.setFixedWidth(self.larguraTela / 3)
-        label_image.setFixedHeight(self.larguraTela / 4)
-
-        imagem = QPixmap("./assets/mapa.png")
-
-        label_image.setPixmap(imagem)
-        label_image.setScaledContents(True)
+        mapa_frame.setStyleSheet("border-radius: 20px")
 
         botao = QPushButton("+ Registrar Nova Chamada")
         botao.setFixedWidth(self.larguraTela / 3)
@@ -322,7 +322,7 @@ class JanelaPrincipal(QMainWindow):
             font-family: Arial;
         """)
 
-        layout.addWidget(label_image, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
+        layout.addWidget(mapa_frame, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
         layout.addWidget(botao, 1, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
         div.setLayout(layout)

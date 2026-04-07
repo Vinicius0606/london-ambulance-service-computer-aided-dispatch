@@ -1,4 +1,4 @@
-from equipe import Equipe
+from .equipe import Equipe
 
 class Ambulancia:
 
@@ -9,6 +9,7 @@ class Ambulancia:
         self.latitudeAtual = None
         self.longitudeAtual = None
         self.equipe = None
+        self.status = "Disponivel"
 
     def atualizarEquipe(equipe: Equipe):
         pass
@@ -16,5 +17,7 @@ class Ambulancia:
     def atualizarStatus(status: str):
         pass
 
-    def atualizarLocalizacao():
-        pass
+    def atualizarLocalizacao(self, latitudeAtual, longitudeAtual):
+        
+        self.latitudeAtual = latitudeAtual
+        self.longitudeAtual = longitudeAtual
