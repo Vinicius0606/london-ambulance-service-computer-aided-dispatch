@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from domain.Modulo_Mapa.mapa import Mapa
 
 
-class JanelaPrincipal(QMainWindow):
+class Janela_principal(QMainWindow):
     def __init__(self):
         super().__init__()
 
@@ -328,11 +328,13 @@ class JanelaPrincipal(QMainWindow):
         div.setLayout(layout)
 
         return div
+    
+
 
 
 app = QApplication(sys.argv)
 
-janela = JanelaPrincipal()
+janela = Janela_principal()
 
 janela.adicionarCard("Teste do Teste", 4, "QN20 Conjunto 10 Casa 28", (datetime.now() - timedelta(hours=3)))
 janela.adicionarCard("Teste", 14, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=2)))
