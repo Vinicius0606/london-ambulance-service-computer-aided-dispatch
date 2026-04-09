@@ -11,10 +11,10 @@ class Janela_principal(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        telaUsuarioTamanho = QApplication.instance().primaryScreen().size()
+        tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
 
-        self.larguraTela = telaUsuarioTamanho.width()
-        self.alturaTela = telaUsuarioTamanho.height()
+        self.larguraTela = tela_usuario_tamanho.width()
+        self.alturaTela = tela_usuario_tamanho.height()
 
         self.mapa = Mapa([])
 
@@ -167,7 +167,7 @@ class Janela_principal(QMainWindow):
 
         return scroll
 
-    def adicionarCard(self, nome_paciente: str, prioridade: int, endereco: str, horario_recebido_da_chamada: datetime):
+    def adicionar_card(self, nome_paciente: str, prioridade: int, endereco: str, horario_recebido_da_chamada: datetime):
 
         card = QWidget()
         card.setFixedHeight(self.scroll_lista_chamadas.height() * 0.25)

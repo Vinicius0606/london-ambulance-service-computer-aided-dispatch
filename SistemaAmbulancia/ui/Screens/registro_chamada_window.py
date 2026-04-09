@@ -326,3 +326,11 @@ class Registro_chamada_window(QMainWindow):
         div_principal.setLayout(layout_principal)
 
         return div_principal
+
+app = QApplication([])
+
+tela = Registro_chamada_window()
+
+tela.showMaximized()
+
+app.exec()
