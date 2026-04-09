@@ -11,10 +11,10 @@ class Janela_principal(QMainWindow):
     def __init__(self, mapa: Mapa, funcao_abrir_pagina_registrar: Callable, funcao_abrir_pagina_mapa: Callable):
         super().__init__()
 
-        telaUsuarioTamanho = QApplication.instance().primaryScreen().size()
+        tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
 
-        self.larguraTela = telaUsuarioTamanho.width()
-        self.alturaTela = telaUsuarioTamanho.height()
+        self.larguraTela = tela_usuario_tamanho.width()
+        self.alturaTela = tela_usuario_tamanho.height()
 
         self.mapa = mapa
 
