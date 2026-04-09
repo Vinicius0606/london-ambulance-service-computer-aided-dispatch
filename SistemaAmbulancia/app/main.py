@@ -15,8 +15,9 @@ chamadas_pendetes = banco_de_dados.retornar_chamadas_pendentes()
 
 mapa_tela_Principal = Mapa(ambulancias)
 mapa_tela_mapa = Mapa(ambulancias)
+mapa_tela_ambulancia = Mapa(ambulancias)
 
-Gerenciador_telas = Gerenciador_telas(mapa_tela_Principal, mapa_tela_mapa)
+Gerenciador_telas = Gerenciador_telas(mapa_tela_Principal, mapa_tela_mapa, mapa_tela_ambulancia)
 
 for chamada in chamadas_pendetes:
     

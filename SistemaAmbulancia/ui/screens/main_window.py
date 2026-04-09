@@ -8,7 +8,9 @@ from ui.screens.registro_chamada_window import Registro_chamada_window
 from typing import Callable
 
 class Janela_principal(QMainWindow):
-    def __init__(self, mapa: Mapa, funcao_abrir_pagina_registrar: Callable, funcao_abrir_pagina_mapa: Callable):
+
+    def __init__(self, mapa: Mapa, funcao_abrir_pagina_registrar: Callable, 
+                 funcao_abrir_pagina_mapa: Callable, funcao_abrir_pagina_ambulancia: Callable):
         super().__init__()
 
         tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
@@ -20,6 +22,7 @@ class Janela_principal(QMainWindow):
 
         self.funcao_abrir_pagina_registrar = funcao_abrir_pagina_registrar
         self.funcao_abrir_pagina_mapa = funcao_abrir_pagina_mapa
+        self.funcao_abrir_pagina_ambulancia = funcao_abrir_pagina_ambulancia
 
         self.setWindowTitle("Sistema de Ambulância")
 
@@ -65,12 +68,19 @@ class Janela_principal(QMainWindow):
 
         botao_mapa.clicked.connect(self.funcao_abrir_pagina_mapa)
 
+        botao_ambulancia = QPushButton()
+        botao_ambulancia.setIcon(QIcon("ui/assets/ambulancia.png"))
+        botao_ambulancia.setIconSize(QSize(48,48))
+
+        botao_ambulancia.clicked.connect(self.funcao_abrir_pagina_ambulancia)
+
         botao_sair = QPushButton()
         botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
 
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
-        layout_menu_lateral.addWidget(botao_mapa, 30, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_mapa, 1, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_ambulancia, 29, alignment= Qt.AlignTop)
         layout_menu_lateral.addWidget(botao_sair, 1, alignment= Qt.AlignBottom)
 
         menu_lateral.setLayout(layout_menu_lateral)
@@ -177,7 +187,7 @@ class Janela_principal(QMainWindow):
         card = QWidget()
         card.setFixedHeight(self.scroll_lista_chamadas.height() * 0.25)
         card.setStyleSheet("""
-            background-color: #20212a;
+            background-color: #161920;
             font-family: Arial;
             font-weight: bold; 
             border-radius: 20px;      

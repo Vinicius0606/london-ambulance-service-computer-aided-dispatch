@@ -7,7 +7,7 @@ from typing import Callable
 
 class Mapa_window(QMainWindow):
 
-    def __init__(self, mapa: Mapa, funcao_abrir_pagina_principal: Callable):
+    def __init__(self, mapa: Mapa, funcao_abrir_pagina_principal: Callable, funcao_abrir_pagina_ambulancia: Callable):
         super().__init__()
 
         telaUsuarioTamanho = QApplication.instance().primaryScreen().size()
@@ -16,6 +16,7 @@ class Mapa_window(QMainWindow):
         self.alturaTela = telaUsuarioTamanho.height()
 
         self.funcao_abrir_pagina_principal = funcao_abrir_pagina_principal
+        self.funcao_abrir_pagina_ambulancia = funcao_abrir_pagina_ambulancia
 
         self.mapa = mapa
 
@@ -57,6 +58,12 @@ class Mapa_window(QMainWindow):
         botao_mapa.setIcon(QIcon("ui/assets/map.png"))
         botao_mapa.setIconSize(QSize(48,48))
 
+        botao_ambulancia = QPushButton()
+        botao_ambulancia.setIcon(QIcon("ui/assets/ambulancia.png"))
+        botao_ambulancia.setIconSize(QSize(48,48))
+
+        botao_ambulancia.clicked.connect(self.funcao_abrir_pagina_ambulancia)
+
         botao_sair = QPushButton()
         botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
@@ -64,7 +71,8 @@ class Mapa_window(QMainWindow):
         botao_sair.clicked.connect(self.funcao_abrir_pagina_principal)
 
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
-        layout_menu_lateral.addWidget(botao_mapa, 30, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_mapa, 1, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_ambulancia, 29, alignment= Qt.AlignTop)
         layout_menu_lateral.addWidget(botao_sair, 1, alignment= Qt.AlignBottom)
 
         menu_lateral.setLayout(layout_menu_lateral)

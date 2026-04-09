@@ -4,10 +4,11 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor
 import datetime
 from domain.Modulo_Mapa.mapa import Mapa
+from typing import Callable
 
 class Aceitar_Chamada_Window(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, mapa: Mapa, funcao_abrir_pagina_principal: Callable, funcao_abrir_tela_mapa: Callable):
 
         super().__init__()
 
@@ -16,7 +17,10 @@ class Aceitar_Chamada_Window(QMainWindow):
         self.larguraTela = tela_usuario_tamanho.width()
         self.alturaTela = tela_usuario_tamanho.height()
 
-        self.mapa = Mapa([])
+        self.funcao_abrir_pagina_principal = funcao_abrir_pagina_principal
+        self.funcao_abrir_tela_mapa = funcao_abrir_tela_mapa
+
+        self.mapa = mapa
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -57,12 +61,21 @@ class Aceitar_Chamada_Window(QMainWindow):
         botao_mapa.setIcon(QIcon("ui/assets/map.png"))
         botao_mapa.setIconSize(QSize(48,48))
 
+        botao_mapa.clicked.connect(self.funcao_abrir_tela_mapa)
+
+        botao_ambulancia = QPushButton()
+        botao_ambulancia.setIcon(QIcon("ui/assets/ambulancia.png"))
+        botao_ambulancia.setIconSize(QSize(48,48))
+
         botao_sair = QPushButton()
         botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
 
+        botao_sair.clicked.connect(self.funcao_abrir_pagina_principal)
+
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
-        layout_menu_lateral.addWidget(botao_mapa, 30, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_mapa, 1, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_ambulancia, 29, alignment= Qt.AlignTop)
         layout_menu_lateral.addWidget(botao_sair, 1, alignment= Qt.AlignBottom)
 
         menu_lateral.setLayout(layout_menu_lateral)
@@ -75,14 +88,14 @@ class Aceitar_Chamada_Window(QMainWindow):
 
         div.backgroundRole()
         div.setStyleSheet("""
-            background-color: #161920;
+            background-color: #1d1e27;;
         """)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(20, 50, 20, 20)
         layout.setSpacing(10)
 
-        novo_chamado_texto = QLabel("Novo Chamado!")
+        novo_chamado_texto = QLabel("Chamados:")
 
         novo_chamado_texto.setAlignment(Qt.AlignLeft)
         novo_chamado_texto.setStyleSheet("""
@@ -94,8 +107,11 @@ class Aceitar_Chamada_Window(QMainWindow):
 
         div_mapa_e_card = self.__criar_div_mapa_e_card()
 
+        div_informacoes_chamada_atual = self.__criar_informacoes_chamada_atual()
+
         layout.addWidget(novo_chamado_texto, 1)
-        layout.addWidget(div_mapa_e_card, 19)
+        layout.addWidget(div_mapa_e_card, 14)
+        layout.addWidget(div_informacoes_chamada_atual, 3, alignment=Qt.AlignTop)
         
         div.setLayout(layout)
 
@@ -106,28 +122,24 @@ class Aceitar_Chamada_Window(QMainWindow):
         div = QWidget()
 
         div.backgroundRole()
-        div.setStyleSheet("""
-            background-color: #161920;
-        """)
 
         layout = QHBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
         mapa_frame = self.mapa.retornar_mapa_QWidget()
-        mapa_frame.setFixedWidth(self.larguraTela / 2)
-        mapa_frame.setFixedHeight(self.alturaTela / 1.5)
+        mapa_frame.setFixedWidth(self.larguraTela / 1.7)
+        mapa_frame.setFixedHeight(self.alturaTela / 1.7)
 
         div_chamados_recebidos = self.__criar_div_chamados_recebidos()
 
-        layout.addWidget(div_chamados_recebidos, 1, alignment=Qt.AlignTop)
-        layout.addWidget(mapa_frame, 2, alignment=Qt.AlignTop)
+        layout.addWidget(div_chamados_recebidos, 1, alignment=Qt.AlignTop | Qt.AlignLeft)
+        layout.addWidget(mapa_frame, 3, alignment=Qt.AlignTop)
 
         div.setLayout(layout)
 
         return div
-
-    
+  
     def __criar_div_chamados_recebidos(self):
         
         div = QWidget()
@@ -135,8 +147,6 @@ class Aceitar_Chamada_Window(QMainWindow):
         layout = self.layout_lista_atendimentos
         layout.setContentsMargins(0,10,10,0)
         layout.setSpacing(20)
-
-        #layout.setAlignment(Qt.AlignTop)
 
         div.setLayout(layout)
 
@@ -146,9 +156,9 @@ class Aceitar_Chamada_Window(QMainWindow):
 
         card = QWidget()
         card.setFixedHeight(self.alturaTela * 0.30)
-        card.setFixedWidth(self.larguraTela * 0.25)
+        card.setFixedWidth(self.larguraTela * 0.30)
         card.setStyleSheet("""
-            background-color: #20212a;
+            background-color: #161920;
             font-family: Arial;
             font-weight: bold; 
             border-radius: 20px;      
@@ -166,8 +176,8 @@ class Aceitar_Chamada_Window(QMainWindow):
         card_div_nome_prioridade_endereco_tempo = self.__criar_card_div_nome_prioridade_endereco(nome_paciente, prioridade, endereco, tempo_estimado)
         card_div_botoes = self.__criar_card_div_botoes()
     
-        layout_card.addWidget(card_div_nome_prioridade_endereco_tempo)
-        layout_card.addWidget(card_div_botoes)
+        layout_card.addWidget(card_div_nome_prioridade_endereco_tempo, 3)
+        layout_card.addWidget(card_div_botoes, 1)
 
         card.setLayout(layout_card)
         card.setGraphicsEffect(shadow)
@@ -213,7 +223,7 @@ class Aceitar_Chamada_Window(QMainWindow):
         label_prioridade.setStyleSheet(f"""
             color: {cor_texto + ", 1)"};
             background-color: {cor_texto + ", 0.25)"};
-            font-size: 14px;
+            font-size: 16px;
             border-radius: 10px;
             padding: 10px 10px;
         """)
@@ -226,17 +236,16 @@ class Aceitar_Chamada_Window(QMainWindow):
             font-size: 18px;
         """)
 
-        label_tempo_estimado = QLabel("⏱️" + tempo_estimado)
+        label_tempo_estimado = QLabel(f"⏱️Tempo estimado: {tempo_estimado}")
         label_tempo_estimado.setStyleSheet("""
-        
             color: white;
             font-size: 18px;
         """)
 
-        layout.addWidget(label_nome, 1, alignment=Qt.AlignBottom)
-        layout.addWidget(label_prioridade, 2, alignment=Qt.AlignTop)
-        layout.addWidget(label_endereco, 1)
-        layout.addWidget(label_tempo_estimado, 1)
+        layout.addWidget(label_nome, 1, alignment=Qt.AlignTop)
+        layout.addWidget(label_prioridade, 3, alignment=Qt.AlignTop)
+        layout.addWidget(label_endereco, 1, alignment=Qt.AlignTop)
+        layout.addWidget(label_tempo_estimado, 1, alignment=Qt.AlignTop)
 
         div.setLayout(layout)
 
@@ -245,23 +254,40 @@ class Aceitar_Chamada_Window(QMainWindow):
     def __criar_card_div_botoes(self):
 
         div = QWidget()
-        layout = QHBoxLayout()
 
-        botao_aceitar = QPushButton("✅Aceitar")
-        botao_recusar = QPushButton("❌ Recusar")
+        div.setStyleSheet("""
+            QPushButton{
+                color: white;
+                font-family: Arial;
+                font-size: 18px;
+                font-weight: bold; 
+            }
+        """)
+
+        layout = QHBoxLayout()
+        layout.setSpacing(20)
+
+        botao_aceitar = QPushButton("  Aceitar")
+
+        botao_aceitar.setIcon(QIcon("ui/assets/confirme.png"))
+        botao_aceitar.setIconSize(QSize(25, 25))
+
+
+        botao_recusar = QPushButton("  Recusar")
+
+        botao_recusar.setIcon(QIcon("ui/assets/close.png"))
+        botao_recusar.setIconSize(QSize(20, 20))
 
         botao_aceitar.setStyleSheet(f"""
 
-            background-color: green;
-            font-size: 14px;
+            background-color: #277118;
             border-radius: 10px;
             padding: 15px 15px;            
         """)
 
         botao_recusar.setStyleSheet(f"""
 
-            background-color: red;
-            font-size: 14px;
+            background-color: #951814;
             border-radius: 10px;
             padding: 15px 15px;
         """)
@@ -272,13 +298,28 @@ class Aceitar_Chamada_Window(QMainWindow):
         div.setLayout(layout)
 
         return div
-        
-app = QApplication([])
+    
+    def __criar_informacoes_chamada_atual(self):
 
-tela = Aceitar_Chamada_Window()
+        div = QWidget()
 
-tela.adicionar_card("Eu", 3, "NInteressa", "1:00")
+        layout = QHBoxLayout()
 
-tela.showMaximized()
+        label_informacoes = QLabel("""
+            Distancia: <span style="color: white;">0 km</span> &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+            Tempo Estimado: <span style="color: white;">0 minutos</span> &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+            Paciente: <span style="color: white;">Vinicius</span>
+        """)
 
-app.exec()
+        label_informacoes.setStyleSheet("""
+            color: #7f8295;
+            font-size: 20px;
+            font-family: Arial;
+            font-weight: bold;
+        """)
+
+        layout.addWidget(label_informacoes, 1, alignment=Qt.AlignCenter | Qt.AlignTop)
+
+        div.setLayout(layout)
+
+        return div

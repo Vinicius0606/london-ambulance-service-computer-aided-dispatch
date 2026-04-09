@@ -6,7 +6,8 @@ from typing import Callable
 
 class Registro_chamada_window(QMainWindow):
     
-    def __init__(self, funcao_abrir_pagina_principal: Callable, funcao_abrir_tela_mapa: Callable):
+    def __init__(self, funcao_abrir_pagina_principal: Callable, 
+                 funcao_abrir_tela_mapa: Callable, funcao_abrir_pagina_ambulancia: Callable):
 
         super().__init__()
 
@@ -17,6 +18,7 @@ class Registro_chamada_window(QMainWindow):
 
         self.funcao_abrir_pagina_principal = funcao_abrir_pagina_principal
         self.funcao_abrir_tela_mapa = funcao_abrir_tela_mapa
+        self.funcao_abrir_pagina_ambulancia = funcao_abrir_pagina_ambulancia
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -65,6 +67,12 @@ class Registro_chamada_window(QMainWindow):
 
         botao_mapa.clicked.connect(self.funcao_abrir_tela_mapa)
 
+        botao_ambulancia = QPushButton()
+        botao_ambulancia.setIcon(QIcon("ui/assets/ambulancia.png"))
+        botao_ambulancia.setIconSize(QSize(48,48))
+
+        botao_ambulancia.clicked.connect(self.funcao_abrir_pagina_ambulancia)
+
         botao_sair = QPushButton()
         botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
@@ -72,7 +80,8 @@ class Registro_chamada_window(QMainWindow):
         botao_sair.clicked.connect(self.funcao_abrir_pagina_principal)
 
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
-        layout_menu_lateral.addWidget(botao_mapa, 30, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_mapa, 1, alignment= Qt.AlignTop)
+        layout_menu_lateral.addWidget(botao_ambulancia, 29, alignment= Qt.AlignTop)
         layout_menu_lateral.addWidget(botao_sair, 1, alignment= Qt.AlignBottom)
 
         menu_lateral.setLayout(layout_menu_lateral)
