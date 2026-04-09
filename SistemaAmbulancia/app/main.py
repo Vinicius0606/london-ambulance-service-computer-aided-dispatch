@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 from domain.Modulo_Mapa.mapa import Mapa
 from domain.Modulo_Banco_Dados.conexao_BD import Conexao_BD
-from ui.main_window import Janela_principal
+from ui.gerenciador_telas import Gerenciador_telas
 
 
 app = QApplication(sys.argv)
@@ -13,14 +13,15 @@ ambulancias = banco_de_dados.retornar_ambulancias()
 
 chamadas_pendetes = banco_de_dados.retornar_chamadas_pendentes()
 
-mapa = Mapa(ambulancias)
+mapa_tela_Principal = Mapa(ambulancias)
+mapa_tela_mapa = Mapa(ambulancias)
 
-tela_principal = Janela_principal(mapa)
+Gerenciador_telas = Gerenciador_telas(mapa_tela_Principal, mapa_tela_mapa)
 
 for chamada in chamadas_pendetes:
     
-    tela_principal.adicionarCard(chamada.nome_solicitante, 10, chamada.endereco.logradouro, chamada.horaChamada)
+    Gerenciador_telas.tela_principal.adicionarCard(chamada.nome_solicitante, 10, chamada.endereco.logradouro, chamada.horaChamada)
 
-tela_principal.showMaximized()
+Gerenciador_telas.abrir_tela_principal()
 
 sys.exit(app.exec())

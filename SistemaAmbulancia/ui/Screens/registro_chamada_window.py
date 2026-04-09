@@ -2,9 +2,11 @@ from PySide6.QtWidgets import ( QApplication, QMainWindow, QPushButton, QWidget,
 QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QComboBox )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSize
+from typing import Callable
 
 class Registro_chamada_window(QMainWindow):
-    def __init__(self):
+    
+    def __init__(self, funcao_abrir_pagina_principal: Callable, funcao_abrir_tela_mapa: Callable):
 
         super().__init__()
 
@@ -12,6 +14,9 @@ class Registro_chamada_window(QMainWindow):
 
         self.larguraTela = telaUsuarioTamanho.width()
         self.alturaTela = telaUsuarioTamanho.height()
+
+        self.funcao_abrir_pagina_principal = funcao_abrir_pagina_principal
+        self.funcao_abrir_tela_mapa = funcao_abrir_tela_mapa
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -51,16 +56,20 @@ class Registro_chamada_window(QMainWindow):
         layout_menu_lateral = QVBoxLayout()
 
         botao_perfil = QPushButton()
-        botao_perfil.setIcon(QIcon("./assets/user.png"))
+        botao_perfil.setIcon(QIcon("ui/assets/user.png"))
         botao_perfil.setIconSize(QSize(48,48))
 
         botao_mapa = QPushButton()
-        botao_mapa.setIcon(QIcon("./assets/map.png"))
+        botao_mapa.setIcon(QIcon("ui/assets/map.png"))
         botao_mapa.setIconSize(QSize(48,48))
 
+        botao_mapa.clicked.connect(self.funcao_abrir_tela_mapa)
+
         botao_sair = QPushButton()
-        botao_sair.setIcon(QIcon("./assets/exit.png"))
+        botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
+
+        botao_sair.clicked.connect(self.funcao_abrir_pagina_principal)
 
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
         layout_menu_lateral.addWidget(botao_mapa, 30, alignment= Qt.AlignTop)

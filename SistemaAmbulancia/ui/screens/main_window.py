@@ -1,14 +1,14 @@
-import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QWidget, QHBoxLayout, 
 QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushButton)
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QColor, QPixmap, QIcon
-from datetime import datetime, timedelta
+from PySide6.QtGui import QColor, QIcon
+from datetime import datetime
 from domain.Modulo_Mapa.mapa import Mapa
 from ui.screens.registro_chamada_window import Registro_chamada_window
+from typing import Callable
 
 class Janela_principal(QMainWindow):
-    def __init__(self, mapa: Mapa):
+    def __init__(self, mapa: Mapa, funcao_abrir_pagina_registrar: Callable, funcao_abrir_pagina_mapa: Callable):
         super().__init__()
 
         telaUsuarioTamanho = QApplication.instance().primaryScreen().size()
@@ -17,6 +17,9 @@ class Janela_principal(QMainWindow):
         self.alturaTela = telaUsuarioTamanho.height()
 
         self.mapa = mapa
+
+        self.funcao_abrir_pagina_registrar = funcao_abrir_pagina_registrar
+        self.funcao_abrir_pagina_mapa = funcao_abrir_pagina_mapa
 
         self.setWindowTitle("Sistema de Ambulância")
 
@@ -59,6 +62,8 @@ class Janela_principal(QMainWindow):
         botao_mapa = QPushButton()
         botao_mapa.setIcon(QIcon("ui/assets/map.png"))
         botao_mapa.setIconSize(QSize(48,48))
+
+        botao_mapa.clicked.connect(self.funcao_abrir_pagina_mapa)
 
         botao_sair = QPushButton()
         botao_sair.setIcon(QIcon("ui/assets/exit.png"))
@@ -324,7 +329,7 @@ class Janela_principal(QMainWindow):
 
         botao_registrar_nova_chamada.setCursor(Qt.PointingHandCursor)
 
-        botao_registrar_nova_chamada.clicked.connect(self.__fechar_pagina_ir_pagina_registrar_chamada)
+        botao_registrar_nova_chamada.clicked.connect(self.funcao_abrir_pagina_registrar)
 
         layout.addWidget(mapa_frame, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
         layout.addWidget(botao_registrar_nova_chamada, 1, alignment=Qt.AlignBottom | Qt.AlignHCenter)
@@ -332,11 +337,3 @@ class Janela_principal(QMainWindow):
         div.setLayout(layout)
 
         return div
-    
-    def __fechar_pagina_ir_pagina_registrar_chamada(self):
-
-        self.registrar_chamada_pagina = Registro_chamada_window()
-
-        self.registrar_chamada_pagina.showMaximized()
-
-        self.close()
