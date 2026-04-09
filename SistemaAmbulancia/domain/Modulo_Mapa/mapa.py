@@ -24,8 +24,6 @@ class Mapa:
 
         for index, ambulancia in enumerate(self.ambulancias):
 
-            ambulancia.atualizarLocalizacao(51.519378, (-0.168820 - (index * 0.01)))
-
             self.mapa_web.page().runJavaScript(
                 f"""adicionar_ambulancia({ambulancia.id}, {ambulancia.latitudeAtual}, 
                 {ambulancia.longitudeAtual}, '{ambulancia.status}')"""

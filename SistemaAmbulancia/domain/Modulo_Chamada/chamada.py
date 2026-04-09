@@ -1,16 +1,16 @@
 from datetime import datetime
-from endereco import Endereco
-from status import Status
-from prioridade import Prioridade
+from .endereco import Endereco
+from .status import Status
+from .prioridade import Prioridade
 
 class Chamada:
 
-    def __init__(self, id: int, nomeSolicitante: str, endereco: Endereco, descricao: str):
+    def __init__(self, id: int, nome_solicitante: str, endereco: Endereco, descricao: str, data_hora: datetime = datetime.now()):
         self.id = id
-        self.nomeSolicitante = nomeSolicitante
+        self.nome_solicitante = nome_solicitante
         self.endereco = endereco
         self.descricao = descricao
-        self.horaChamada = datetime.now()
+        self.horaChamada = data_hora
         self.prioridade = None
         self.status = Status.PENDENTE
 

@@ -5,10 +5,10 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QPixmap, QIcon
 from datetime import datetime, timedelta
 from domain.Modulo_Mapa.mapa import Mapa
-
+from ui.screens.registro_chamada_window import Registro_chamada_window
 
 class Janela_principal(QMainWindow):
-    def __init__(self):
+    def __init__(self, mapa: Mapa):
         super().__init__()
 
         telaUsuarioTamanho = QApplication.instance().primaryScreen().size()
@@ -16,7 +16,7 @@ class Janela_principal(QMainWindow):
         self.larguraTela = telaUsuarioTamanho.width()
         self.alturaTela = telaUsuarioTamanho.height()
 
-        self.mapa = Mapa([])
+        self.mapa = mapa
 
         self.setWindowTitle("Sistema de Ambulância")
 
@@ -53,15 +53,15 @@ class Janela_principal(QMainWindow):
         layout_menu_lateral = QVBoxLayout()
 
         botao_perfil = QPushButton()
-        botao_perfil.setIcon(QIcon("./assets/user.png"))
+        botao_perfil.setIcon(QIcon("ui/assets/user.png"))
         botao_perfil.setIconSize(QSize(48,48))
 
         botao_mapa = QPushButton()
-        botao_mapa.setIcon(QIcon("./assets/map.png"))
+        botao_mapa.setIcon(QIcon("ui/assets/map.png"))
         botao_mapa.setIconSize(QSize(48,48))
 
         botao_sair = QPushButton()
-        botao_sair.setIcon(QIcon("./assets/exit.png"))
+        botao_sair.setIcon(QIcon("ui/assets/exit.png"))
         botao_sair.setIconSize(QSize(48,48))
 
         layout_menu_lateral.addWidget(botao_perfil, 1, alignment= Qt.AlignTop)
@@ -268,7 +268,7 @@ class Janela_principal(QMainWindow):
 
         if(tempo_total_desde_chamada_recebida.total_seconds() < 60):
             
-            tempo_texto = f"{tempo_total_desde_chamada_recebida.total_seconds()} segundo(s) atrás >"
+            tempo_texto = f"{(int)(tempo_total_desde_chamada_recebida.total_seconds())} segundo(s) atrás >"
         
         else:
             
@@ -310,10 +310,10 @@ class Janela_principal(QMainWindow):
 
         mapa_frame.setStyleSheet("border-radius: 20px")
 
-        botao = QPushButton("+ Registrar Nova Chamada")
-        botao.setFixedWidth(self.larguraTela / 3)
+        botao_registrar_nova_chamada = QPushButton("+ Registrar Nova Chamada")
+        botao_registrar_nova_chamada.setFixedWidth(self.larguraTela / 3)
 
-        botao.setStyleSheet("""
+        botao_registrar_nova_chamada.setStyleSheet("""
             background-color: #0f3aaf;
             padding: 20px 20px;
             border-radius: 10px;
@@ -322,30 +322,21 @@ class Janela_principal(QMainWindow):
             font-family: Arial;
         """)
 
+        botao_registrar_nova_chamada.setCursor(Qt.PointingHandCursor)
+
+        botao_registrar_nova_chamada.clicked.connect(self.__fechar_pagina_ir_pagina_registrar_chamada)
+
         layout.addWidget(mapa_frame, 1, alignment=Qt.AlignTop | Qt.AlignHCenter)
-        layout.addWidget(botao, 1, alignment=Qt.AlignBottom | Qt.AlignHCenter)
+        layout.addWidget(botao_registrar_nova_chamada, 1, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
         div.setLayout(layout)
 
         return div
     
+    def __fechar_pagina_ir_pagina_registrar_chamada(self):
 
+        self.registrar_chamada_pagina = Registro_chamada_window()
 
+        self.registrar_chamada_pagina.showMaximized()
 
-app = QApplication(sys.argv)
-
-janela = Janela_principal()
-
-janela.adicionarCard("Teste do Teste", 4, "QN20 Conjunto 10 Casa 28", (datetime.now() - timedelta(hours=3)))
-janela.adicionarCard("Teste", 14, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=2)))
-janela.adicionarCard("Teste", 22, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=0.5)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-janela.adicionarCard("Teste", 40, "QN20 Conjunto 1 Casa 8", (datetime.now() - timedelta(hours=1)))
-
-janela.showMaximized()
-
-sys.exit(app.exec())
+        self.close()

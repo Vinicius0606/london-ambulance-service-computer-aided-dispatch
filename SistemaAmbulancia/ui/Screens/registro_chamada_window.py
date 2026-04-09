@@ -111,7 +111,7 @@ class Registro_chamada_window(QMainWindow):
             color: #7e7e98;
             font-size: 24px;
             border-radius: 10px;
-        """)        
+        """)     
         botao_cancelar.setFixedWidth(self.larguraTela / 8)
         
         botao_registrar = QPushButton("+ Registrar Chamada")
