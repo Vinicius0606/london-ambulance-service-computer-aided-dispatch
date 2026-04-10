@@ -50,7 +50,7 @@ class IATriagem(QThread):
         "sangramento_intenso": false,
         "dificuldade_respiratoria": false,
         "suspeita_trauma": false,
-        "idade": None
+        "idade": null
         }}
 
         Mensagem Exemplo 2:
@@ -78,7 +78,9 @@ class IATriagem(QThread):
             ]
         )
 
-        texto: str = resposta["message"]["content"]
+        texto = resposta["message"]["content"]
+
+        print(texto)
 
         inicio = texto.find("{")
 
@@ -86,46 +88,32 @@ class IATriagem(QThread):
 
         texto = texto[inicio:fim]
 
+        print(texto)
+
+        texto = json.loads(texto)
+
         self.analisarOcorrencia(texto)
 
     def analisarOcorrencia(self, ocorrencia: dict):
         pontuacao = 0
         justificativa = []
+        resultado = {}
 
         if not ocorrencia["respira"]:
 
             pontuacao = 90
             justificativa.append("parada respiratoria")
 
-            return {
-
-                "pontuacao": pontuacao,
-                "justificativa": justificativa
-            }
-        
-        if ocorrencia["sangramento_intenso"]:
+        elif ocorrencia["sangramento_intenso"]:
 
             pontuacao = 90
             justificativa.append("sangramento intenso")
-
-            return {
-
-                "pontuacao": pontuacao,
-                "justificativa": justificativa
-            }
-        
-        if ocorrencia["quantidade_vitimas"] >= 2 and ocorrencia["suspeita_trauma"]:
-
+      
+        elif ocorrencia["quantidade_vitimas"] >= 2 and ocorrencia["suspeita_trauma"]:
             pontuacao = 90
             justificativa.append(f"{ocorrencia['quantidade_vitimas']} vitimas e suspeita de trauma")
 
-            return {
-
-                "pontuacao": pontuacao,
-                "justificativa": justificativa
-            } 
-        
-        elif ocorrencia["suspeita_trauma"]:
+        if ocorrencia["suspeita_trauma"]:
             pontuacao += 60
             justificativa.append("suspeita de trauma")
         
@@ -150,10 +138,12 @@ class IATriagem(QThread):
             pontuacao += 10
             justificativa.append("Transporte de incapacitado")
         
-        prioridade = self.definirPrioridade({
+        resultado = {
             "pontuacao": pontuacao,
             "justificativa": justificativa
-        })
+        }
+
+        prioridade = self.definirPrioridade(resultado)
 
         ambulancia_info = self.calcularQuantidadeAmbulancias(ocorrencia["quantidade_vitimas"], prioridade)
 
