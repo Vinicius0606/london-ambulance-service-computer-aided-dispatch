@@ -56,10 +56,10 @@ class Conexao_BD:
 
         for chamada in chamadas_resultado:
 
-            endereco_objeto = Endereco(chamada[4], chamada[5], chamada[6], 
+            endereco_objeto = Endereco(chamada[5], chamada[6], 
                                        chamada[7], chamada[8], chamada[9], chamada[10], chamada[11], chamada[12], chamada[13])
 
-            chamada_objeto = Chamada(chamada[0], chamada[1], endereco_objeto ,chamada[2], chamada[3])
+            chamada_objeto = Chamada(chamada[1], endereco_objeto ,chamada[2], chamada[3])
 
             chamadas_lista.append(chamada_objeto)
 

@@ -3,26 +3,68 @@ from PySide6.QtWidgets import QApplication
 from domain.Modulo_Mapa.mapa import Mapa
 from domain.Modulo_Banco_Dados.conexao_BD import Conexao_BD
 from ui.gerenciador_telas import Gerenciador_telas
+from events.gerenciador_eventos import Gerenciador_eventos
+from domain.Modulo_Triagem.triagem import Triagem
+from domain.Modulo_Triagem.IATriagem import IATriagem
+from domain.Modulo_Chamada.chamada import Chamada
+from domain.Modulo_Usuario.atendente import Atendente
 
+class Sistema_principal:
 
-app = QApplication(sys.argv)
+    def __init__(self):
 
-banco_de_dados = Conexao_BD()
+        self.app = QApplication(sys.argv)
 
-ambulancias = banco_de_dados.retornar_ambulancias()
+        self.gerenciador_eventos = Gerenciador_eventos()
 
-chamadas_pendetes = banco_de_dados.retornar_chamadas_pendentes()
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Chamada_registrada", self.chamada_registrada)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.comecar_thread_IA)
 
-mapa_tela_Principal = Mapa(ambulancias)
-mapa_tela_mapa = Mapa(ambulancias)
-mapa_tela_ambulancia = Mapa(ambulancias)
+        self.banco_de_dados = Conexao_BD()
+        self.ia_triagem = IATriagem(self.gerenciador_eventos)
 
-Gerenciador_telas = Gerenciador_telas(mapa_tela_Principal, mapa_tela_mapa, mapa_tela_ambulancia)
+        self.atendente = Atendente(1, "a", "asdas", "asdasd", "Atendente", self.gerenciador_eventos)
 
-for chamada in chamadas_pendetes:
+        self.chamadas:list[Chamada] = []
+        self.triagens_esperando_confirmacao = []
+
+        self.ambulancias = self.banco_de_dados.retornar_ambulancias()
+        self.chamadas_pendentes = self.banco_de_dados.retornar_chamadas_pendentes()
+
+        self.gerenciador_eventos.emitir_evento("Chamada_enviada", [
+            "1","2","3","4","5",6,7,"8",9,"10","Socorro meu amigo está passando mal, sem respirar"
+        ])
+
+    def comecar_thread_IA(self):
+
+        self.ia_triagem.start()
+
+    def chamada_registrada(self, chamada: Chamada):
+
+        triagem = Triagem(chamada.descricao, self.gerenciador_eventos)
+
+        self.triagens_esperando_confirmacao.append(triagem)
+
+        self.chamadas.append(chamada)
+
+        self.chamadas_pendentes.insert(0, chamada)
+
+    def iniciar_telas(self):
+
+        self.mapa_tela_Principal = Mapa(self.ambulancias)
+        self.mapa_tela_mapa = Mapa(self.ambulancias)
+        self.mapa_tela_ambulancia = Mapa(self.ambulancias)
+
+        self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, self.mapa_tela_ambulancia)
+
+        for chamada in self.chamadas_pendentes:
     
-    Gerenciador_telas.tela_principal.adicionarCard(chamada.nome_solicitante, 10, chamada.endereco.logradouro, chamada.horaChamada)
+            self.Gerenciador_telas.tela_principal.adicionarCard(chamada.nome_solicitante, 10, chamada.endereco.logradouro, chamada.horaChamada)
 
-Gerenciador_telas.abrir_tela_principal()
+        self.Gerenciador_telas.abrir_tela_principal()
 
-sys.exit(app.exec())
+        sys.exit(self.app.exec())
+    
+sistema = Sistema_principal()
+
+sistema.iniciar_telas()

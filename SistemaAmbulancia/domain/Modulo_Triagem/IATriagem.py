@@ -1,11 +1,38 @@
-from triagem import Triagem
 import ollama
 import json
+from events.gerenciador_eventos import Gerenciador_eventos
+from PySide6.QtCore import QThread, Signal
 
-class IATriagem:
+class IATriagem(QThread):
+    triagem_pronta = Signal(dict)
 
-    def __init__(self):
+    def __init__(self, gerenciador_eventos: Gerenciador_eventos):
+        
+        super().__init__()
+
         self.triagem = None
+
+        self.ocorrencia = None
+
+        self.gerenciador_eventos = gerenciador_eventos
+
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_iniciada", self.atualizar_ocorrencia)
+        self.triagem_pronta.connect(self.enviar_finilizacao_thread)
+
+    def enviar_finilizacao_thread(self, triagem_dict: dict):
+
+        self.gerenciador_eventos.emitir_evento("Triagem_concluida", triagem_dict)
+
+    def atualizar_ocorrencia(self, ocorrencia):
+
+        self.ocorrencia = ocorrencia
+
+        self.gerenciador_eventos.emitir_evento("Triagem_Thread_IA")
+
+    def run(self):
+
+        self.extrairOcorrencia(self.ocorrencia)
+        
 
     def extrairOcorrencia(self, mensagem):
 
@@ -51,9 +78,15 @@ class IATriagem:
             ]
         )
 
-        texto = resposta["message"]["content"]
+        texto: str = resposta["message"]["content"]
 
-        return json.loads(texto)
+        inicio = texto.find("{")
+
+        fim = texto.find("}") + 1
+
+        texto = texto[inicio:fim]
+
+        self.analisarOcorrencia(texto)
 
     def analisarOcorrencia(self, ocorrencia: dict):
         pontuacao = 0
@@ -116,12 +149,25 @@ class IATriagem:
         else:
             pontuacao += 10
             justificativa.append("Transporte de incapacitado")
-
-        return {
-
+        
+        prioridade = self.definirPrioridade({
             "pontuacao": pontuacao,
             "justificativa": justificativa
+        })
+
+        ambulancia_info = self.calcularQuantidadeAmbulancias(ocorrencia["quantidade_vitimas"], prioridade)
+
+        qtd_ambulancias = ambulancia_info["qtdAmbulancias"]
+
+        ambulancias = ambulancia_info["ambulancia"]
+
+        triagem_dict = {
+            "prioridade": prioridade,
+            "qtd_ambulancias": qtd_ambulancias,
+            "ambulancias": ambulancias
         }
+
+        self.triagem_pronta.emit(triagem_dict)
 
     def definirPrioridade(self, resultado_triagem: dict):
 
