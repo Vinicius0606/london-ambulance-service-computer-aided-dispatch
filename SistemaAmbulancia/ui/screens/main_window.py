@@ -6,6 +6,7 @@ from datetime import datetime
 from domain.Modulo_Mapa.mapa import Mapa
 from ui.screens.registro_chamada_window import Registro_chamada_window
 from typing import Callable
+import copy
 
 class Janela_principal(QMainWindow):
 
@@ -26,9 +27,9 @@ class Janela_principal(QMainWindow):
 
         self.setWindowTitle("Sistema de Ambulância")
 
-        self.scroll_lista_chamadas = QScrollArea()
-        self.div_lista_chamadas = QFrame()
-        self.layout_lista_chamadas = QVBoxLayout()
+        self.scroll_lista_atendimentos = QScrollArea()
+        self.div_lista_atendimentos = QFrame()
+        self.layout_lista_atendimentos = QVBoxLayout()
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -94,7 +95,7 @@ class Janela_principal(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(40,50,0,0)
 
-        texto_chamadas = QLabel("Chamadas Pendentes")
+        texto_chamadas = QLabel("Atendimentos em andamento")
         texto_chamadas.setAlignment(Qt.AlignLeft)
         texto_chamadas.setStyleSheet("""
             color: #dde1f2;
@@ -119,24 +120,23 @@ class Janela_principal(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(0,0,0,0)
 
-        div_lista_chamadas_pendentes = self.__criar_div_lista_chamadas_pendentes()
+        div_listas = self.__criar_div_lista_atendimentos_andamento()
         div_mapa_botao_registrar = self.__criar_div_mapa_botao_registrar()
 
-        layout.addWidget(div_lista_chamadas_pendentes, 1)
+        layout.addWidget(div_listas, 1)
         layout.addWidget(div_mapa_botao_registrar, 1)
         
         div.setLayout(layout)
 
         return div
     
-    def __criar_div_lista_chamadas_pendentes(self):
-
-        scroll = self.scroll_lista_chamadas
-
-        div = self.div_lista_chamadas
-
-        layout = self.layout_lista_chamadas
+    
+    def __criar_div_lista_atendimentos_andamento(self):
         
+        scroll = self.scroll_lista_atendimentos 
+        div = self.div_lista_atendimentos
+        layout = self.layout_lista_atendimentos
+
         layout.setContentsMargins(0,10,10,0)
         layout.setSpacing(20)
 
@@ -182,10 +182,10 @@ class Janela_principal(QMainWindow):
 
         return scroll
 
-    def adicionarCard(self, nome_paciente: str, prioridade: int, endereco: str, horario_recebido_da_chamada: datetime):
+    def adicionar_card_atendimento(self, nome_paciente: str, prioridade: int, endereco: str, horario_inicio: datetime):
 
         card = QWidget()
-        card.setFixedHeight(self.scroll_lista_chamadas.height() * 0.25)
+        card.setFixedHeight(self.scroll_lista_atendimentos.height() * 0.25)
         card.setStyleSheet("""
             background-color: #161920;
             font-family: Arial;
@@ -202,8 +202,8 @@ class Janela_principal(QMainWindow):
         shadow.setYOffset(8)
         shadow.setColor(QColor(0,0,0,140))
 
-        card_div_nome_prioridade_endereco = self.__criar_card_div_nome_prioridade_endereco(nome_paciente, prioridade, endereco)
-        card_div_tempo = self.__criar_card_div_tempo(horario_recebido_da_chamada)
+        card_div_nome_prioridade_endereco = self.__criar_card_div_nome_prioridade_endereco(nome_paciente, endereco, prioridade=prioridade)
+        card_div_tempo = self.__criar_card_div_tempo(horario_inicio)
         
         layout_card.addWidget(card_div_nome_prioridade_endereco)
         layout_card.addWidget(card_div_tempo)
@@ -211,32 +211,9 @@ class Janela_principal(QMainWindow):
         card.setLayout(layout_card)
         card.setGraphicsEffect(shadow)
 
-        self.layout_lista_chamadas.addWidget(card)
+        self.layout_lista_atendimentos.addWidget(card)
 
-    def __criar_card_div_nome_prioridade_endereco(self, nome_paciente: str, prioridade: int, endereco: str):
-
-        prioridade_texto = ""
-        cor_texto = ""
-
-        if prioridade < 5:
-            
-            prioridade_texto = "Baixa Prioridade"
-            cor_texto = "rgba(0, 122, 255"
-
-        elif prioridade < 15: 
-            
-            prioridade_texto = "Media Prioridade"
-            cor_texto = "rgba(255, 193, 7"
-
-        elif prioridade < 25:
-
-            prioridade_texto = "Alta Prioridade"
-            cor_texto = "rgba(255, 140, 0"
-
-        else: 
-
-            prioridade_texto = "Extrema Prioridade"
-            cor_texto = "rgba(220, 53, 69"
+    def __criar_card_div_nome_prioridade_endereco(self, nome_paciente: str, endereco: str, status: str = None, prioridade: int = None):
 
         div = QWidget()
         layout = QVBoxLayout()
@@ -247,9 +224,37 @@ class Janela_principal(QMainWindow):
             font-size: 16px;
         """)
 
-        label_prioridade = QLabel(prioridade_texto)
+        prioridade_texto = ""
+        cor_texto = ""
 
-        label_prioridade.setStyleSheet(f"""
+        if status == "Pendente": cor_texto = "rgba(220, 53, 69"
+        
+        elif status == "Em Triagem": cor_texto = "rgba(255, 193, 7"
+
+        if prioridade != None:
+            if prioridade < 5:
+                
+                prioridade_texto = "Baixa Prioridade"
+                cor_texto = "rgba(0, 122, 255"
+
+            elif prioridade < 15: 
+                
+                prioridade_texto = "Media Prioridade"
+                cor_texto = "rgba(255, 193, 7"
+
+            elif prioridade < 25:
+
+                prioridade_texto = "Alta Prioridade"
+                cor_texto = "rgba(255, 140, 0"
+
+            else: 
+
+                prioridade_texto = "Extrema Prioridade"
+                cor_texto = "rgba(220, 53, 69"
+
+        label_status = QLabel(status if status else prioridade_texto)
+
+        label_status.setStyleSheet(f"""
             color: {cor_texto + ", 1)"};
             background-color: {cor_texto + ", 0.25)"};
             font-size: 14px;
@@ -257,7 +262,7 @@ class Janela_principal(QMainWindow):
             padding: 5px 5px;
         """)
 
-        label_prioridade.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        label_status.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         label_endereco = QLabel(endereco)
         label_endereco.setStyleSheet("""
@@ -266,13 +271,13 @@ class Janela_principal(QMainWindow):
         """)
 
         layout.addWidget(label_nome, 1)
-        layout.addWidget(label_prioridade, 1)
+        layout.addWidget(label_status, 1)
         layout.addWidget(label_endereco, 1)
 
         div.setLayout(layout)
 
         return div
-
+    
     def __criar_card_div_tempo(self, horario_recebido_da_chamada: datetime):
 
         tempo_atual = datetime.now()

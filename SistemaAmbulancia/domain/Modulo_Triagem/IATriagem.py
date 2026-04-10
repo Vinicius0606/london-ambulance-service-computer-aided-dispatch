@@ -84,7 +84,7 @@ class IATriagem(QThread):
 
         inicio = texto.find("{")
 
-        fim = texto.find("}") + 1
+        fim = texto.rfind("}") + 1
 
         texto = texto[inicio:fim]
 

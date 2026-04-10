@@ -7,13 +7,13 @@ from events.gerenciador_eventos import Gerenciador_eventos
 class Chamada:
 
     def __init__(self, nome_solicitante: str, endereco: Endereco, 
-                 descricao: str, data_hora: datetime = datetime.now()):
-        self.id = None
+                 descricao: str, data_hora: datetime = datetime.now(), id: int = None, prioridade: Prioridade = None):
+        self.id = id
         self.nome_solicitante = nome_solicitante
         self.endereco = endereco
         self.descricao = descricao
         self.horaChamada = data_hora
-        self.prioridade = None
+        self.prioridade = prioridade
         self.status = Status.PENDENTE
 
     def atualizarID(self, id: int):

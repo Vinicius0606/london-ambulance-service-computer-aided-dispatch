@@ -263,55 +263,21 @@ class Registro_chamada_window(QMainWindow):
 
         layout_div_cidade_estado = QHBoxLayout()
 
-        self.input_cidade = QComboBox()
+        self.input_cidade = QLineEdit()
+        self.input_cidade.setPlaceholderText("Cidade")
         self.input_cidade.setStyleSheet("""
-            QComboBox {
-                background-color: #222635;
-                padding: 10px 20px;
-            }
-                                   
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-
-            QComboBox::down-arrow {
-                image: url(./assets/angulo-para-baixo.png);
-                width: 12px;
-                height: 12px;
-            }
+            background-color: #222635;
+            border-radius: 10px;
+            padding: 15px 10px;
         """)
 
-        self.input_cidade.addItem("DF")
-        self.input_cidade.addItem("AA")
-        self.input_cidade.addItem("BB")
-        self.input_cidade.addItem("CC")
-        self.input_cidade.addItem("DD")
-
-        self.input_estado = QComboBox()
+        self.input_estado = QLineEdit()
+        self.input_estado.setPlaceholderText("Estado")
         self.input_estado.setStyleSheet("""
-            QComboBox {
-                background-color: #222635;
-                padding: 10px 20px;
-            }
-                                   
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-
-            QComboBox::down-arrow {
-                image: url(./assets/angulo-para-baixo.png);
-                width: 12px;
-                height: 12px;
-            }
+            background-color: #222635;
+            border-radius: 10px;
+            padding: 15px 10px;
         """)
-
-        self.input_estado.addItem("AA")
-        self.input_estado.addItem("BB")
-        self.input_estado.addItem("CC")
-        self.input_estado.addItem("DD")
-        self.input_estado.addItem("FF")
 
         layout_div_cidade_estado.addWidget(self.input_cidade)
         layout_div_cidade_estado.addWidget(self.input_estado)

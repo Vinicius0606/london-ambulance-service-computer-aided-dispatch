@@ -29,7 +29,7 @@ class Sistema_principal:
         self.triagens_esperando_confirmacao = []
 
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
-        self.chamadas_pendentes = self.banco_de_dados.retornar_chamadas_pendentes()
+        self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos()
 
         # self.gerenciador_eventos.emitir_evento("Chamada_enviada", [
         #     "1","2","3","4","5",6,7,"8",9,"10","Socorro meu amigo está passando mal, sem respirar"
@@ -57,9 +57,10 @@ class Sistema_principal:
 
         self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, self.mapa_tela_ambulancia)
 
-        for chamada in self.chamadas_pendentes:
-    
-            self.Gerenciador_telas.tela_principal.adicionarCard(chamada.nome_solicitante, 10, chamada.endereco.logradouro, chamada.horaChamada)
+        for atendimento in self.atendimentos_andamento:
+
+            self.Gerenciador_telas.tela_principal.adicionar_card_atendimento(
+                atendimento.chamada.nome_solicitante, 10, atendimento.chamada.endereco.logradouro, atendimento.hora_inicio)
 
         self.Gerenciador_telas.abrir_tela_principal()
 
