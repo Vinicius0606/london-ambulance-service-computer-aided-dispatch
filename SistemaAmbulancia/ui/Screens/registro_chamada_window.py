@@ -3,6 +3,7 @@ QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QComboBox )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSize
 from typing import Callable
+from domain.Modulo_Chamada import autocomplete as ac
 
 class Registro_chamada_window(QMainWindow):
     
@@ -224,44 +225,46 @@ class Registro_chamada_window(QMainWindow):
 
         layout_inputs = QVBoxLayout()
 
-        label_CEP = QLabel("CEP")
+        self.label_CEP = QLabel("CEP")
 
-        input_CEP = QLineEdit()
-        input_CEP.setPlaceholderText("NNNNN-NNN")
-        input_CEP.setStyleSheet("""
+        self.input_CEP = QLineEdit()
+        self.input_CEP.setPlaceholderText("NNNNN-NNN")
+        self.input_CEP.setStyleSheet("""
             background-color: #222635;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        label_logradouro = QLabel("logradouro")
+        self.input_CEP.editingFinished.connect(self.preencher_endereco)
 
-        input_logradouro = QLineEdit()
-        input_logradouro.setPlaceholderText("Logradouro")
-        input_logradouro.setStyleSheet("""
+        self.label_logradouro = QLabel("Logradouro")
+
+        self.input_logradouro = QLineEdit()
+        self.input_logradouro.setPlaceholderText("Logradouro")
+        self.input_logradouro.setStyleSheet("""
             background-color: #222635;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        label_numero = QLabel("Número")
+        self.label_numero = QLabel("Número")
 
-        input_numero = QLineEdit()
-        input_numero.setPlaceholderText("Número")
-        input_numero.setStyleSheet("""
+        self.input_numero = QLineEdit()
+        self.input_numero.setPlaceholderText("Número")
+        self.input_numero.setStyleSheet("""
             background-color: #222635;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        label_cidade_estado = QLabel("Cidade / Estado")
+        self.label_cidade_estado = QLabel("Cidade / Estado")
 
         div_cidade_estado = QWidget()
 
         layout_div_cidade_estado = QHBoxLayout()
 
-        input_cidade = QComboBox()
-        input_cidade.setStyleSheet("""
+        self.input_cidade = QComboBox()
+        self.input_cidade.setStyleSheet("""
             QComboBox {
                 background-color: #222635;
                 padding: 10px 20px;
@@ -279,14 +282,14 @@ class Registro_chamada_window(QMainWindow):
             }
         """)
 
-        input_cidade.addItem("DF")
-        input_cidade.addItem("AA")
-        input_cidade.addItem("BB")
-        input_cidade.addItem("CC")
-        input_cidade.addItem("DD")
+        self.input_cidade.addItem("DF")
+        self.input_cidade.addItem("AA")
+        self.input_cidade.addItem("BB")
+        self.input_cidade.addItem("CC")
+        self.input_cidade.addItem("DD")
 
-        input_estado = QComboBox()
-        input_estado.setStyleSheet("""
+        self.input_estado = QComboBox()
+        self.input_estado.setStyleSheet("""
             QComboBox {
                 background-color: #222635;
                 padding: 10px 20px;
@@ -304,37 +307,37 @@ class Registro_chamada_window(QMainWindow):
             }
         """)
 
-        input_estado.addItem("AA")
-        input_estado.addItem("BB")
-        input_estado.addItem("CC")
-        input_estado.addItem("DD")
-        input_estado.addItem("FF")
+        self.input_estado.addItem("AA")
+        self.input_estado.addItem("BB")
+        self.input_estado.addItem("CC")
+        self.input_estado.addItem("DD")
+        self.input_estado.addItem("FF")
 
-        layout_div_cidade_estado.addWidget(input_cidade)
-        layout_div_cidade_estado.addWidget(input_estado)
+        layout_div_cidade_estado.addWidget(self.input_cidade)
+        layout_div_cidade_estado.addWidget(self.input_estado)
 
         div_cidade_estado.setLayout(layout_div_cidade_estado)
 
-        label_complemento = QLabel("Complemento (opcional)")
+        self.label_complemento = QLabel("Complemento (opcional)")
 
-        input_complemento = QLineEdit()
-        input_complemento.setPlaceholderText("Complemento")
-        input_complemento.setStyleSheet("""
+        self.input_complemento = QLineEdit()
+        self.input_complemento.setPlaceholderText("Complemento")
+        self.input_complemento.setStyleSheet("""
             background-color: #222635;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        layout_inputs.addWidget(label_CEP, 1, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(input_CEP, 4, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(label_logradouro, 1, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(input_logradouro, 4, alignment=Qt.AlignTop) 
-        layout_inputs.addWidget(label_numero, 1, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(input_numero, 4, alignment=Qt.AlignTop) 
-        layout_inputs.addWidget(label_cidade_estado, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.label_CEP, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.input_CEP, 4, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.label_logradouro, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.input_logradouro, 4, alignment=Qt.AlignTop) 
+        layout_inputs.addWidget(self.label_numero, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.input_numero, 4, alignment=Qt.AlignTop) 
+        layout_inputs.addWidget(self.label_cidade_estado, 1, alignment=Qt.AlignTop)
         layout_inputs.addWidget(div_cidade_estado, 4, alignment=Qt.AlignTop) 
-        layout_inputs.addWidget(label_complemento, 1, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(input_complemento, 4, alignment=Qt.AlignTop) 
+        layout_inputs.addWidget(self.label_complemento, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(self.input_complemento, 4, alignment=Qt.AlignTop) 
 
         div_inputs.setLayout(layout_inputs)
 
@@ -344,3 +347,13 @@ class Registro_chamada_window(QMainWindow):
         div_principal.setLayout(layout_principal)
 
         return div_principal
+    
+
+
+    def preencher_endereco(self):
+        valores = ac.validacao(self.input_CEP.text())
+        if valores:
+            self.input_logradouro.setText(valores.get("logradouro", ""))
+            self.input_bairro.setText(valores.get("bairro", ""))
+            self.input_cidade.setText(valores.get("cidade", ""))
+            self.input_estado.setText(valores.get("estado", ""))

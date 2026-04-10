@@ -31,9 +31,9 @@ class Sistema_principal:
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
         self.chamadas_pendentes = self.banco_de_dados.retornar_chamadas_pendentes()
 
-        self.gerenciador_eventos.emitir_evento("Chamada_enviada", [
-            "1","2","3","4","5",6,7,"8",9,"10","Socorro meu amigo está passando mal, sem respirar"
-        ])
+        # self.gerenciador_eventos.emitir_evento("Chamada_enviada", [
+        #     "1","2","3","4","5",6,7,"8",9,"10","Socorro meu amigo está passando mal, sem respirar"
+        # ])
 
     def comecar_thread_IA(self):
 

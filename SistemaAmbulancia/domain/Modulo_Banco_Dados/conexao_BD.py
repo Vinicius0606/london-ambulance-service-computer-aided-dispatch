@@ -10,7 +10,7 @@ class Conexao_BD:
         self.conexao = pymysql.connect(
             host="localhost",
             user="root",
-            password="+Banco5178",
+            password="123",
             database="sistema_ambulancia",
             port=3306
         )
