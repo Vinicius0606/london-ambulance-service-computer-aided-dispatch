@@ -60,7 +60,7 @@ class Conexao_BD:
             endereco_objeto = Endereco(chamada[6], chamada[7], chamada[8], chamada[9], 
                                        chamada[10], chamada[11], chamada[12], chamada[13], chamada[14])
 
-            chamada_objeto = Chamada(chamada[1], endereco_objeto ,chamada[2], chamada[3], id=chamada[0], prioridade=chamada[4])
+            chamada_objeto = Chamada(endereco_objeto ,chamada[2], chamada[3], id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1])
 
             chamadas_lista.append(chamada_objeto)
 

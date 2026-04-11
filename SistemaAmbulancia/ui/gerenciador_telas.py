@@ -3,8 +3,10 @@ from ui.screens.main_window import Janela_principal
 from ui.screens.mapa_window import Mapa_window
 from ui.screens.registro_chamada_window import Registro_chamada_window
 from ui.screens.aceitar_chamada_window import Aceitar_Chamada_Window
+from ui.screens.carregar_triagem_window import Carregar_triagem_window
 from domain.Modulo_Mapa.mapa import Mapa
 from events.gerenciador_eventos import Gerenciador_eventos
+from domain.Modulo_Triagem.triagem import Triagem
 
 class Gerenciador_telas:
 
@@ -17,6 +19,11 @@ class Gerenciador_telas:
         self.tela_ambulancia = Aceitar_Chamada_Window(mapa_tela_ambulancia, self.abrir_tela_principal, self.abrir_tela_mapa)
 
         self.gerenciador_eventos = gerenciador_eventos
+
+        self.carregar_triagem_window = None
+
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.abrir_tela_carregando_triagem)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Enviar_triagem_analise", self.abrir_tela_confirmar_triagem)
 
     def abrir_tela_principal(self):
 
@@ -54,7 +61,20 @@ class Gerenciador_telas:
 
         self.tela_ambulancia.showMaximized()
 
+    def abrir_tela_carregando_triagem(self):
+
+        self.carregar_triagem_window = Carregar_triagem_window(carregando=True)
+
+        self.carregar_triagem_window.show()
     
+    def abrir_tela_confirmar_triagem(self, triagem: Triagem):
+
+        self.carregar_triagem_window.close()
+        
+        self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
+                                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=triagem.ambulancias)
+
+        self.confirmar_triagem_window.show()
 
     def disparar_evento(self, nome_evento: str, dados):
 

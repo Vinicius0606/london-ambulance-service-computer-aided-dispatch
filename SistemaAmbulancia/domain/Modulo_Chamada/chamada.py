@@ -6,8 +6,9 @@ from events.gerenciador_eventos import Gerenciador_eventos
 
 class Chamada:
 
-    def __init__(self, nome_solicitante: str, endereco: Endereco, 
-                 descricao: str, data_hora: datetime = datetime.now(), id: int = None, prioridade: Prioridade = None):
+    def __init__(self, endereco: Endereco, 
+                 descricao: str, data_hora: datetime = datetime.now(), id: int = None, 
+                 prioridade: Prioridade = None, nome_solicitante: str = None):
         self.id = id
         self.nome_solicitante = nome_solicitante
         self.endereco = endereco

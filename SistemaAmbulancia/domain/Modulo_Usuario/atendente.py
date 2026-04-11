@@ -21,7 +21,7 @@ class Atendente(Usuario):
         endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
                             info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])
 
-        chamada = Chamada(info_chamada["complemento"], endereco, info_chamada["numero"])
+        chamada = Chamada(endereco, info_chamada["descricao"], nome_solicitante=info_chamada["nome"])
 
         self.gerenciador_eventos.emitir_evento("Chamada_registrada", chamada)
 

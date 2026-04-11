@@ -19,9 +19,9 @@ class Triagem:
         
         self.prioridade = triagem_dict["prioridade"]
         self.qtdAmbulancias = triagem_dict["qtd_ambulancias"]
-        self.ambulancias = triagem_dict["ambulancias"]
+        self.ambulancias = list(triagem_dict["ambulancias"])
 
-        print(self.prioridade, self.qtdAmbulancias, self.ambulancias)
+        self.gerenciador_eventos.emitir_evento("Enviar_triagem_analise", self)
 
     def ajustarResultados():
         pass

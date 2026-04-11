@@ -41,6 +41,8 @@ class Sistema_principal:
         self.ia_triagem.start()
 
     def chamada_registrada(self, chamada: Chamada):
+        
+        print(f"{chamada.descricao}\n\n\n\n\n")
 
         triagem = Triagem(chamada.descricao, self.gerenciador_eventos)
 
