@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton, QWidget, 
-QHBoxLayout, QVBoxLayout, QLabel, QLineEdit)
+QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QMessageBox)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSize
 from typing import Callable
@@ -185,7 +185,7 @@ class Registro_chamada_window(QMainWindow):
             padding: 15px 10px;
         """)
 
-        self.label_descricao = QLabel("Descrição")
+        self.label_descricao = QLabel("Descrição *")
         self.label_descricao.setStyleSheet("margin-left: 5px;")
 
         self.input_descricao = QLineEdit()
@@ -242,7 +242,7 @@ class Registro_chamada_window(QMainWindow):
 
         self.input_CEP.editingFinished.connect(self.preencher_endereco)
 
-        self.label_logradouro = QLabel("Logradouro")
+        self.label_logradouro = QLabel("Logradouro *")
 
         self.input_logradouro = QLineEdit()
         self.input_logradouro.setPlaceholderText("Logradouro")
@@ -262,7 +262,7 @@ class Registro_chamada_window(QMainWindow):
             padding: 15px 10px;
         """)
 
-        self.label_cidade_bairro = QLabel("Cidade / Bairro")
+        self.label_cidade_bairro = QLabel("Cidade * / Bairro *")
 
         div_cidade_bairro = QWidget()
 
@@ -328,7 +328,54 @@ class Registro_chamada_window(QMainWindow):
             self.input_bairro.setText(valores.get("bairro", ""))
             self.input_cidade.setText(valores.get("cidade", ""))
 
+    def validar_campos(self, campos_obrigatorios):
+        
+        for nome_campo, campo in campos_obrigatorios.items():
+
+            if campo.text().strip() == "":
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    f"O campo {nome_campo} é obrigatório."
+                )
+
+                return False
+
+        return True
+    
+    def sinalizar_campos_faltantes(self, campos_obrigatorios):
+
+        for campo in campos_obrigatorios.values():
+
+            if campo.text().strip() == "":
+                campo.setStyleSheet("""
+                    background-color: #222635;
+                    border-radius: 10px;
+                    padding: 15px 10px;
+                    border: 2px solid red;
+                """)
+            
+            else:
+                campo.setStyleSheet("""
+                    background-color: #222635;
+                    border-radius: 10px;
+                    padding: 15px 10px;
+                """)
+        
     def finalizar_registro(self):
+
+        campos_obrigatorios = {
+
+            "descricao": self.input_descricao,
+            "logradouro": self.input_logradouro,
+            "cidade": self.input_cidade,
+            "bairro": self.input_bairro
+        }
+
+        if not self.validar_campos(campos_obrigatorios): 
+            
+            self.sinalizar_campos_faltantes(campos_obrigatorios)
+            return
 
         registro = {}
 
@@ -337,12 +384,10 @@ class Registro_chamada_window(QMainWindow):
         nome = None
         numero = None
         complemento = None
-        cidade = None
 
         if self.input_nome.text() != "": nome = self.input_nome.text()
         if self.input_numero.text() != "": numero = self.input_numero.text()
-        if self.input_complemento.text() != "": complemento = self.input_numero.text()
-        if self.input_cidade.text() != "": cidade = self.input_cidade.text()
+        if self.input_complemento.text() != "": complemento = self.input_complemento.text()
 
         if endereco != None:
 
@@ -367,7 +412,7 @@ class Registro_chamada_window(QMainWindow):
                 "numero": numero,
                 "complemento": complemento,
                 "bairro": endereco.get("bairro"),
-                "cidade": cidade,
+                "cidade": endereco.get("cidade"),
                 "estado": "DF",
                 "cep": endereco.get("cep"),
                 "latitude": latitude,
@@ -378,13 +423,14 @@ class Registro_chamada_window(QMainWindow):
 
         elif (self.input_descricao.text() != "" and 
             self.input_logradouro.text() != "" and
-            self.input_bairro.text() != ""):
+            self.input_bairro.text() != "" and
+            self.input_cidade.text() != ""):
 
          
             latitude, longitude = ac.buscar_por_endereco(
-                endereco.get("logradouro"),
-                endereco.get("bairro"),
-                endereco.get("cidade"),
+                self.input_logradouro.text(),
+                self.input_bairro.text(),
+                self.input_cidade.text(),
                 "DF"
             )
 
@@ -396,7 +442,7 @@ class Registro_chamada_window(QMainWindow):
                 "numero": numero,
                 "complemento": complemento,
                 "bairro": self.input_bairro.text(),
-                "cidade": cidade,
+                "cidade": self.input_cidade.text(),
                 "estado": "DF",
                 "cep": None,
                 "latitude": latitude,
