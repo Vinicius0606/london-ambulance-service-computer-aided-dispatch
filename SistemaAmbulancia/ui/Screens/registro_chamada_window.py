@@ -8,7 +8,8 @@ from domain.Modulo_Chamada import autocomplete as ac
 class Registro_chamada_window(QMainWindow):
     
     def __init__(self, funcao_abrir_pagina_principal: Callable, 
-                 funcao_abrir_tela_mapa: Callable, funcao_abrir_pagina_ambulancia: Callable):
+                 funcao_abrir_tela_mapa: Callable, funcao_abrir_pagina_ambulancia: Callable,
+                 funcao_disparar_evento: Callable):
 
         super().__init__()
 
@@ -20,6 +21,7 @@ class Registro_chamada_window(QMainWindow):
         self.funcao_abrir_pagina_principal = funcao_abrir_pagina_principal
         self.funcao_abrir_tela_mapa = funcao_abrir_tela_mapa
         self.funcao_abrir_pagina_ambulancia = funcao_abrir_pagina_ambulancia
+        self.funcao_disparar_evento = funcao_disparar_evento
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -371,23 +373,20 @@ class Registro_chamada_window(QMainWindow):
                 "latitude": latitude,
                 "longitude": longitude
             }
-            print(registro)
+            
+            self.funcao_disparar_evento("Chamada_enviada", registro)
 
         elif (self.input_descricao.text() != "" and 
             self.input_logradouro.text() != "" and
             self.input_bairro.text() != ""):
 
-            latitude = endereco["latitude"]
-            longitude = endereco["longitude"]
-
-            if latitude is None and longitude is None:
-
-                latitude, longitude = ac.buscar_por_endereco(
-                    endereco.get("logradouro"),
-                    endereco.get("bairro"),
-                    endereco.get("cidade"),
-                    "DF",
-                )
+         
+            latitude, longitude = ac.buscar_por_endereco(
+                endereco.get("logradouro"),
+                endereco.get("bairro"),
+                endereco.get("cidade"),
+                "DF"
+            )
 
             registro = {
 
@@ -404,7 +403,7 @@ class Registro_chamada_window(QMainWindow):
                 "longitude": longitude
             }
 
-            self(registro)
+            self.funcao_disparar_evento("Chamada_enviada", registro)
 
         else:
 

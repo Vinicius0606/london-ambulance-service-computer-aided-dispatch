@@ -80,15 +80,11 @@ class IATriagem(QThread):
 
         texto = resposta["message"]["content"]
 
-        print(texto)
-
         inicio = texto.find("{")
 
         fim = texto.rfind("}") + 1
 
         texto = texto[inicio:fim]
-
-        print(texto)
 
         texto = json.loads(texto)
 

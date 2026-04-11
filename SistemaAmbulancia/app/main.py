@@ -36,10 +36,6 @@ class Sistema_principal:
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
         self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos()
 
-        #self.gerenciador_eventos.emitir_evento("Chamada_enviada", [
-        #    "1","2","3","4","5",6,7,"8",9,"10","Socorro meu amigo está passando mal, sem respirar"
-        #])
-
     def comecar_thread_IA(self):
 
         self.ia_triagem.start()
@@ -52,7 +48,7 @@ class Sistema_principal:
 
         self.chamadas.append(chamada)
 
-        self.chamadas_pendentes.insert(0, chamada)
+        self.chamadas.insert(0, chamada)
 
     def iniciar_telas(self):
 
@@ -60,7 +56,8 @@ class Sistema_principal:
         self.mapa_tela_mapa = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
         self.mapa_tela_ambulancia = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
 
-        self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, self.mapa_tela_ambulancia)
+        self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, 
+                                            self.mapa_tela_ambulancia, self.gerenciador_eventos)
 
         for atendimento in self.atendimentos_andamento:
 
