@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import ( QApplication, QMainWindow, QPushButton, QWidget, 
-QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QComboBox )
+from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton, QWidget, 
+QHBoxLayout, QVBoxLayout, QLabel, QLineEdit)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSize
 from typing import Callable
@@ -143,6 +143,8 @@ class Registro_chamada_window(QMainWindow):
         """)
         botao_registrar.setFixedWidth(self.larguraTela / 4)
 
+        botao_registrar.clicked.connect(self.finalizar_registro)
+
         layout_botaos.addWidget(botao_cancelar, 9, Qt.AlignRight)
         layout_botaos.addWidget(botao_registrar, 1, Qt.AlignRight)
 
@@ -170,34 +172,35 @@ class Registro_chamada_window(QMainWindow):
         layout = QVBoxLayout()
         layout.setSpacing(2)
 
-        label_nome = QLabel("Nome")
-        label_nome.setStyleSheet("margin-left: 5px;")
+        self.label_nome = QLabel("Nome")
+        self.label_nome.setStyleSheet("margin-left: 5px;")
 
-        input_nome = QLineEdit()
-        input_nome.setPlaceholderText("Nome")
-        input_nome.setStyleSheet("""
+        self.input_nome = QLineEdit()
+        self.input_nome.setPlaceholderText("Nome")
+        self.input_nome.setStyleSheet("""
             background-color: #242735;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        label_descricao = QLabel("Descrição")
-        label_descricao.setStyleSheet("margin-left: 5px;")
+        self.label_descricao = QLabel("Descrição")
+        self.label_descricao.setStyleSheet("margin-left: 5px;")
 
-        input_descricao = QLineEdit()
-        input_descricao.setPlaceholderText("Descrição")
-        input_descricao.setStyleSheet("""
+        self.input_descricao = QLineEdit()
+        self.input_descricao.setPlaceholderText("Descrição")
+        self.input_descricao.setStyleSheet("""
             background-color: #242735;
             border-radius: 10px;
             padding: 15px 10px;
         """)
-        input_descricao.setFixedHeight(self.alturaTela / 4)
-        input_descricao.setAlignment(Qt.AlignTop)
 
-        layout.addWidget(label_nome, 1, alignment=Qt.AlignLeft)
-        layout.addWidget(input_nome, 2, alignment=Qt.AlignTop)
-        layout.addWidget(label_descricao, 1, alignment=Qt.AlignLeft)
-        layout.addWidget(input_descricao, 10, alignment=Qt.AlignTop)
+        self.input_descricao.setFixedHeight(self.alturaTela / 4)
+        self.input_descricao.setAlignment(Qt.AlignTop)
+
+        layout.addWidget(self.label_nome, 1, alignment=Qt.AlignLeft)
+        layout.addWidget(self.input_nome, 2, alignment=Qt.AlignTop)
+        layout.addWidget(self.label_descricao, 1, alignment=Qt.AlignLeft)
+        layout.addWidget(self.input_descricao, 10, alignment=Qt.AlignTop)
 
         div.setLayout(layout)
 
@@ -257,11 +260,11 @@ class Registro_chamada_window(QMainWindow):
             padding: 15px 10px;
         """)
 
-        self.label_cidade_estado = QLabel("Cidade / Estado")
+        self.label_cidade_bairro = QLabel("Cidade / Bairro")
 
-        div_cidade_estado = QWidget()
+        div_cidade_bairro = QWidget()
 
-        layout_div_cidade_estado = QHBoxLayout()
+        layout_div_cidade_bairro = QHBoxLayout()
 
         self.input_cidade = QLineEdit()
         self.input_cidade.setPlaceholderText("Cidade")
@@ -271,18 +274,18 @@ class Registro_chamada_window(QMainWindow):
             padding: 15px 10px;
         """)
 
-        self.input_estado = QLineEdit()
-        self.input_estado.setPlaceholderText("Estado")
-        self.input_estado.setStyleSheet("""
+        self.input_bairro = QLineEdit()
+        self.input_bairro.setPlaceholderText("Bairro")
+        self.input_bairro.setStyleSheet("""
             background-color: #222635;
             border-radius: 10px;
             padding: 15px 10px;
         """)
 
-        layout_div_cidade_estado.addWidget(self.input_cidade)
-        layout_div_cidade_estado.addWidget(self.input_estado)
+        layout_div_cidade_bairro.addWidget(self.input_cidade)
+        layout_div_cidade_bairro.addWidget(self.input_bairro)
 
-        div_cidade_estado.setLayout(layout_div_cidade_estado)
+        div_cidade_bairro.setLayout(layout_div_cidade_bairro)
 
         self.label_complemento = QLabel("Complemento (opcional)")
 
@@ -300,8 +303,8 @@ class Registro_chamada_window(QMainWindow):
         layout_inputs.addWidget(self.input_logradouro, 4, alignment=Qt.AlignTop) 
         layout_inputs.addWidget(self.label_numero, 1, alignment=Qt.AlignTop)
         layout_inputs.addWidget(self.input_numero, 4, alignment=Qt.AlignTop) 
-        layout_inputs.addWidget(self.label_cidade_estado, 1, alignment=Qt.AlignTop)
-        layout_inputs.addWidget(div_cidade_estado, 4, alignment=Qt.AlignTop) 
+        layout_inputs.addWidget(self.label_cidade_bairro, 1, alignment=Qt.AlignTop)
+        layout_inputs.addWidget(div_cidade_bairro, 4, alignment=Qt.AlignTop) 
         layout_inputs.addWidget(self.label_complemento, 1, alignment=Qt.AlignTop)
         layout_inputs.addWidget(self.input_complemento, 4, alignment=Qt.AlignTop) 
 
@@ -317,9 +320,93 @@ class Registro_chamada_window(QMainWindow):
 
 
     def preencher_endereco(self):
-        valores = ac.validacao(self.input_CEP.text())
+        valores = ac.buscar_por_cep(self.input_CEP.text())
         if valores:
             self.input_logradouro.setText(valores.get("logradouro", ""))
             self.input_bairro.setText(valores.get("bairro", ""))
             self.input_cidade.setText(valores.get("cidade", ""))
-            self.input_estado.setText(valores.get("estado", ""))
+
+    def finalizar_registro(self):
+
+        registro = {}
+
+        endereco = ac.buscar_por_cep(self.input_CEP.text())
+
+        nome = None
+        numero = None
+        complemento = None
+        cidade = None
+
+        if self.input_nome.text() != "": nome = self.input_nome.text()
+        if self.input_numero.text() != "": numero = self.input_numero.text()
+        if self.input_complemento.text() != "": complemento = self.input_numero.text()
+        if self.input_cidade.text() != "": cidade = self.input_cidade.text()
+
+        if endereco != None:
+
+            latitude = endereco["latitude"]
+            longitude = endereco["longitude"]
+
+            if latitude is None and longitude is None:
+
+                latitude, longitude = ac.buscar_por_endereco(
+                    endereco.get("logradouro"),
+                    endereco.get("bairro"),
+                    endereco.get("cidade"),
+                    "DF",
+                    endereco.get("cep")
+                )
+
+            registro = {
+
+                "nome": nome,
+                "descricao": self.input_descricao.text(),
+                "logradouro": endereco.get("logradouro"),
+                "numero": numero,
+                "complemento": complemento,
+                "bairro": endereco.get("bairro"),
+                "cidade": cidade,
+                "estado": "DF",
+                "cep": endereco.get("cep"),
+                "latitude": latitude,
+                "longitude": longitude
+            }
+            print(registro)
+
+        elif (self.input_descricao.text() != "" and 
+            self.input_logradouro.text() != "" and
+            self.input_bairro.text() != ""):
+
+            latitude = endereco["latitude"]
+            longitude = endereco["longitude"]
+
+            if latitude is None and longitude is None:
+
+                latitude, longitude = ac.buscar_por_endereco(
+                    endereco.get("logradouro"),
+                    endereco.get("bairro"),
+                    endereco.get("cidade"),
+                    "DF",
+                )
+
+            registro = {
+
+                "nome": nome,
+                "descricao": self.input_descricao.text(),
+                "logradouro": self.input_logradouro.text(),
+                "numero": numero,
+                "complemento": complemento,
+                "bairro": self.input_bairro.text(),
+                "cidade": cidade,
+                "estado": "DF",
+                "cep": None,
+                "latitude": latitude,
+                "longitude": longitude
+            }
+
+            self(registro)
+
+        else:
+
+            print("Dados incompletos")
+            return

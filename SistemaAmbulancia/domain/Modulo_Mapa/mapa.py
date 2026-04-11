@@ -32,7 +32,7 @@ class Mapa:
 
     def adicionarAmbulancias(self, ambulancia: Ambulancia):
         
-        self.ambulancias.push(ambulancia)
+        self.ambulancias.append(ambulancia)
 
         self.mapa_web.page().runJavaScript(
             f"adicionar_ambulancia({ambulancia.id}, {ambulancia.latitudeAtual}, {ambulancia.longitudeAtual}, '{ambulancia.status}')"
@@ -41,8 +41,10 @@ class Mapa:
     def exibirAtendimentos():
         pass
 
-    def exibirRotas():
-        pass
+    def exibirRotas(self, ambulancia: Ambulancia, latitude_destino: float, longitude_destino: float):
+        self.mapa_web.page().runJavaScript(
+            f"desenhar_rota({ambulancia.id}, {ambulancia.latitudeAtual}, {ambulancia.longitudeAtual}, {latitude_destino}, {longitude_destino})"
+        )
 
     def retornar_mapa_QWidget(self):
 

@@ -18,10 +18,10 @@ class Atendente(Usuario):
 
     def registrarChamada(self, info_chamada: list):
 
-        endereco = Endereco(info_chamada[0], info_chamada[1], info_chamada[2], info_chamada[3], 
-                            info_chamada[4], info_chamada[5], info_chamada[6], info_chamada[7], info_chamada[8])
+        endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
+                            info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])
 
-        chamada = Chamada(info_chamada[9], endereco, info_chamada[10])
+        chamada = Chamada(info_chamada["complemento"], endereco, info_chamada["numero"])
 
         self.gerenciador_eventos.emitir_evento("Chamada_registrada", chamada)
 
