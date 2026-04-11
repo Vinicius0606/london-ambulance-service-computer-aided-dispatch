@@ -1,9 +1,10 @@
 from ..Modulo_Chamada.chamada import Chamada
+from ..Modulo_Ambulancia.ambulancia import Ambulancia
 from datetime import datetime
 
 class Atendimento:
 
-    def __init__(self, id: int, chamada: Chamada, qtdAmbulancias: int, ambulancias: list, hora_inicio: datetime = datetime.now()):
+    def __init__(self, id: int, chamada: Chamada, qtdAmbulancias: int, ambulancias: list[Ambulancia], hora_inicio: datetime = datetime.now()):
 
         self.id = id
         self.hora_inicio = hora_inicio

@@ -25,7 +25,12 @@ class Sistema_principal:
 
         self.atendente = Atendente(1, "a", "asdas", "asdasd", "Atendente", self.gerenciador_eventos)
 
-        self.chamadas:list[Chamada] = []
+        self.chamadas:list[Chamada] = self.banco_de_dados.retornar_chamadas()
+        
+        for index, chamada in enumerate(self.chamadas):
+
+            if(chamada.status == "Encerrado"): self.chamadas.pop(index)
+
         self.triagens_esperando_confirmacao = []
 
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
@@ -51,9 +56,9 @@ class Sistema_principal:
 
     def iniciar_telas(self):
 
-        self.mapa_tela_Principal = Mapa(self.ambulancias)
-        self.mapa_tela_mapa = Mapa(self.ambulancias)
-        self.mapa_tela_ambulancia = Mapa(self.ambulancias)
+        self.mapa_tela_Principal = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
+        self.mapa_tela_mapa = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
+        self.mapa_tela_ambulancia = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
 
         self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, self.mapa_tela_ambulancia)
 

@@ -99,8 +99,8 @@ class Conexao_BD:
             
             id_ambulancias_do_atendimento = [next((id[1] for id in atendimentos_ambulancias_id if id[0] == atendimento[0]))]
 
-            ambulancias_do_atendimento = next(
-                (ambulancia for ambulancia in ambulancias if ambulancia.id in id_ambulancias_do_atendimento), [])
+            ambulancias_do_atendimento = list(
+                ambulancia for ambulancia in ambulancias if ambulancia.id in id_ambulancias_do_atendimento)
 
             if chamada_do_atendimento == None: continue
 

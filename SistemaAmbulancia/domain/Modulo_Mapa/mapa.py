@@ -1,17 +1,15 @@
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QApplication
-from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtCore import QUrl
 from ..Modulo_Ambulancia.ambulancia import Ambulancia
-import sys
-import os
-import time
+from ..Modulo_Ambulancia.atendimento import Atendimento
+from ..Modulo_Chamada.chamada import Chamada
 
 class Mapa:
 
-    def __init__(self, ambulancias: list[Ambulancia]):
+    def __init__(self, ambulancias: list[Ambulancia], chamadas: list[Chamada] , atendimentos: list[Atendimento]):
         self.ambulancias: list[Ambulancia] = ambulancias
-        self.atendimentos = None
+        self.chamadas: list[Chamada] = chamadas
+        self.atendimentos: list[Atendimento] = atendimentos
 
         self.mapa_web = QWebEngineView()
 
@@ -22,13 +20,34 @@ class Mapa:
     
     def codigo_mapa_carregado(self):
 
-        for index, ambulancia in enumerate(self.ambulancias):
-
+        for ambulancia in self.ambulancias:
+            
             self.mapa_web.page().runJavaScript(
                 f"""adicionar_ambulancia({ambulancia.id}, {ambulancia.latitudeAtual}, 
                 {ambulancia.longitudeAtual}, '{ambulancia.status}')"""
             )
-        
+
+        for chamada in self.chamadas:
+
+            self.mapa_web.page().runJavaScript(
+                f"""adicionar_chamada({chamada.id}, {chamada.endereco.latitude},
+                {chamada.endereco.longitude}, '{chamada.status}')"""
+            )
+
+        for atendimento in self.atendimentos:
+
+            if len(atendimento.ambulancias_alocadas) == 0: continue
+
+            for ambulancia in atendimento.ambulancias_alocadas:
+
+                self.mapa_web.page().runJavaScript(
+                    f"""adicionar_rota_ambulancia({ambulancia.id}, 
+                    {atendimento.chamada.endereco.latitude}, {atendimento.chamada.endereco.longitude})"""
+                )
+
+                self.mapa_web.page().runJavaScript(
+                    f"""atualizar_status({ambulancia.id}, 'Atendendo')"""
+                )
 
     def adicionarAmbulancias(self, ambulancia: Ambulancia):
         
