@@ -16,12 +16,16 @@ class Atendente(Usuario):
 
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Chamada_enviada", self.registrarChamada)
 
+        self.chamada_id_registrada = -1
+
     def registrarChamada(self, info_chamada: list):
 
         endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
                             info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])
 
-        chamada = Chamada(endereco, info_chamada["descricao"], nome_solicitante=info_chamada["nome"])
+        chamada = Chamada(endereco, info_chamada["descricao"], self.gerenciador_eventos , id=self.chamada_id_registrada, nome_solicitante=info_chamada["nome"])
+
+        self.chamada_id_registrada -= 1
 
         self.gerenciador_eventos.emitir_evento("Chamada_registrada", chamada)
 

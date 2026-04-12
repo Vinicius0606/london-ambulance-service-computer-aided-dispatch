@@ -81,24 +81,35 @@ class IATriagem(QThread):
         {mensagem}
         """
 
-        resposta = ollama.chat(
-            model="qwen3:8b",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        # resposta = ollama.chat(
+        #     model="qwen3:8b",
+        #     messages=[
+        #         {"role": "user", "content": prompt}
+        #     ]
+        # )
 
-        texto = resposta["message"]["content"]
+        # texto = resposta["message"]["content"]
 
-        inicio = texto.find("{")
+        # inicio = texto.find("{")
 
-        fim = texto.rfind("}") + 1
+        # fim = texto.rfind("}") + 1
 
-        texto = texto[inicio:fim]
+        # texto = texto[inicio:fim]
 
-        print(texto)
+        texto = {
+            "tipo_ocorrencia": "mal_súbito",
+            "quantidade_vitimas": 1,
+            "inconsciente": True,
+            "respira": False,
+            "sangramento_intenso": False,
+            "dificuldade_respiratoria": False,
+            "suspeita_trauma": False,
+            "idade": None
+            }
 
-        texto = json.loads(texto)
+        # print(texto)
+
+        # texto = json.loads(texto)
 
         self.analisar_ocorrencia(texto)
 
@@ -212,7 +223,6 @@ class IATriagem(QThread):
                     escolha_de_ambulancia.append(ambulancia)
             
             aux_qtd_ambulancias -= 1
-
   
         return{
             "ambulancia": escolha_de_ambulancia,

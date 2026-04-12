@@ -3,10 +3,13 @@ from PySide6.QtCore import QUrl
 from ..Modulo_Ambulancia.ambulancia import Ambulancia
 from ..Modulo_Ambulancia.atendimento import Atendimento
 from ..Modulo_Chamada.chamada import Chamada
+from events.gerenciador_eventos import Gerenciador_eventos
+from ..Modulo_Ambulancia.despacho import Despacho
 
 class Mapa:
 
-    def __init__(self, ambulancias: list[Ambulancia], chamadas: list[Chamada] , atendimentos: list[Atendimento]):
+    def __init__(self, ambulancias: list[Ambulancia], chamadas: list[Chamada] , 
+                 atendimentos: list[Atendimento], gerenciador_eventos: Gerenciador_eventos):
         self.ambulancias: list[Ambulancia] = ambulancias
         self.chamadas: list[Chamada] = chamadas
         self.atendimentos: list[Atendimento] = atendimentos
@@ -17,9 +20,14 @@ class Mapa:
         self.mapa_web.resize(1000, 700)
 
         self.mapa_web.loadFinished.connect(self.codigo_mapa_carregado)
+
+        self.gerenciador_eventos = gerenciador_eventos
+
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Chamada_criada", self.adicionar_chamada)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Despacho_criado", self.adicionar_rotas)
     
     def codigo_mapa_carregado(self):
-
+        pass
         for ambulancia in self.ambulancias:
             
             self.mapa_web.page().runJavaScript(
@@ -49,12 +57,22 @@ class Mapa:
                     f"""atualizar_status({ambulancia.id}, 'Atendendo')"""
                 )
 
-    def adicionarAmbulancias(self, ambulancia: Ambulancia):
-        
-        self.ambulancias.append(ambulancia)
+    def adicionar_chamada(self, chamada):
+
+         self.mapa_web.page().runJavaScript(
+                f"""adicionar_chamada({chamada.id}, {chamada.endereco.latitude},
+                {chamada.endereco.longitude}, '{chamada.status}')"""
+            )
+
+    def adicionar_rotas(self, despacho: Despacho):
 
         self.mapa_web.page().runJavaScript(
-            f"adicionar_ambulancia({ambulancia.id}, {ambulancia.latitudeAtual}, {ambulancia.longitudeAtual}, '{ambulancia.status}')"
+            f"""adicionar_rota_ambulancia({despacho.ambulancia.id}, 
+            {despacho.chamada.endereco.latitude}, {despacho.chamada.endereco.longitude})"""
+        )
+
+        self.mapa_web.page().runJavaScript(
+            f"""atualizar_status({despacho.ambulancia.id}, 'Atendendo')"""
         )
 
     def exibirAtendimentos():

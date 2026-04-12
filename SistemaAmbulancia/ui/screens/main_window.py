@@ -214,6 +214,8 @@ class Janela_principal(QMainWindow):
         self.layout_lista_atendimentos.addWidget(card)
 
     def __criar_card_div_nome_prioridade_endereco(self, nome_paciente: str, endereco: str, status: str = None, prioridade: int = None):
+        
+        if nome_paciente == None: nome_paciente = "Não especificado"
 
         div = QWidget()
         layout = QVBoxLayout()
@@ -231,7 +233,31 @@ class Janela_principal(QMainWindow):
         
         elif status == "Em Triagem": cor_texto = "rgba(255, 193, 7"
 
-        if prioridade != None:
+        if isinstance(prioridade, tuple): prioridade = prioridade[0]
+
+        if prioridade != None and isinstance(prioridade, str):
+
+            if prioridade == "Transporte":
+                
+                prioridade_texto = "Baixa Prioridade"
+                cor_texto = "rgba(0, 122, 255"
+
+            elif prioridade == "Moderada":
+
+                prioridade_texto = "Media Prioridade"
+                cor_texto = "rgba(255, 193, 7"
+        
+            elif prioridade == "Alta":
+
+                prioridade_texto = "Alta Prioridade"
+                cor_texto = "rgba(255, 140, 0"
+        
+            elif prioridade == "Extrema":
+
+                prioridade_texto = "Extrema Prioridade"
+                cor_texto = "rgba(220, 53, 69"
+
+        if prioridade != None and not isinstance(prioridade, str):
             if prioridade < 5:
                 
                 prioridade_texto = "Baixa Prioridade"

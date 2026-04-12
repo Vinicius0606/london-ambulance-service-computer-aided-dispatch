@@ -4,10 +4,11 @@ from ..Modulo_Chamada.chamada import Chamada
 from ..Modulo_Chamada.endereco import Endereco
 from ..Modulo_Ambulancia.atendimento import Atendimento
 from datetime import datetime
+from events.gerenciador_eventos import Gerenciador_eventos
 
 class Conexao_BD:
 
-    def __init__(self):
+    def __init__(self, gerenciador_eventos: Gerenciador_eventos):
 
         self.conexao = pymysql.connect(
             host="localhost",
@@ -19,11 +20,13 @@ class Conexao_BD:
 
         self.cursor = self.conexao.cursor()
 
+        self.gerenciador_eventos = gerenciador_eventos
+
     def retornar_ambulancias(self):
 
         cursor = self.cursor
         
-        sql = "SELECT ID_ambulancia, placa, tipo, latitude, longitude FROM ambulancia"
+        sql = "SELECT ID_ambulancia, placa, tipo, latitude, longitude, status FROM ambulancia"
 
         cursor.execute(sql)
 
@@ -33,7 +36,8 @@ class Conexao_BD:
 
         for ambulancia in ambulancias_resultado:
 
-            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2])
+            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2], 
+                                           self.gerenciador_eventos, status=ambulancia[5])
 
             ambulancia_objeto.atualizarLocalizacao(ambulancia[3], ambulancia[4])
 
@@ -60,7 +64,7 @@ class Conexao_BD:
             endereco_objeto = Endereco(chamada[6], chamada[7], chamada[8], chamada[9], 
                                        chamada[10], chamada[11], chamada[12], chamada[13], chamada[14])
 
-            chamada_objeto = Chamada(endereco_objeto ,chamada[2], chamada[3], id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1])
+            chamada_objeto = Chamada(endereco_objeto ,chamada[2], self.gerenciador_eventos, chamada[3], id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1])
 
             chamadas_lista.append(chamada_objeto)
 
@@ -85,11 +89,13 @@ class Conexao_BD:
         sql = """SELECT a.ID_atendimento, aa.ID_ambulancia 
                 FROM atendimento_ambulancia aa
                 LEFT JOIN atendimento a ON aa.ID_atendimento = a.ID_atendimento
-                LEFT JOIN ambulancia c ON aa.ID_ambulancia = c.ID_ambulancia;"""
+                LEFT JOIN ambulancia c ON aa.ID_ambulancia = c.ID_ambulancia"""
         
         cursor.execute(sql)
 
         atendimentos_ambulancias_id = cursor.fetchall()
+
+        if len(atendimentos_ambulancias_id) == 0: return []
         
         lista_atendimentos: list[Atendimento] = []
 
@@ -97,7 +103,7 @@ class Conexao_BD:
             
             chamada_do_atendimento = next((chamada for chamada in chamadas if chamada.id == atendimento[1]), None)
             
-            id_ambulancias_do_atendimento = [next((id[1] for id in atendimentos_ambulancias_id if id[0] == atendimento[0]))]
+            id_ambulancias_do_atendimento = [next(id[1] for id in atendimentos_ambulancias_id if id[0] == atendimento[0])]
 
             ambulancias_do_atendimento = list(
                 ambulancia for ambulancia in ambulancias if ambulancia.id in id_ambulancias_do_atendimento)
@@ -105,7 +111,7 @@ class Conexao_BD:
             if chamada_do_atendimento == None: continue
 
             atendimento_objeto = Atendimento(atendimento[0], chamada_do_atendimento, 
-                                             atendimento[2], ambulancias_do_atendimento , 
+                                             atendimento[2], ambulancias_do_atendimento , self.gerenciador_eventos,
                                              atendimento[3] if atendimento[3] != None else datetime.now())
 
             lista_atendimentos.append(atendimento_objeto)

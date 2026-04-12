@@ -83,7 +83,8 @@ class Gerenciador_telas:
         
         self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
                         qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=placas_ambulancias, 
-                        funcao_verificar_ambulancias=self.analisar_ambulancias, funcao_disparar_evento=self.disparar_evento)
+                        funcao_verificar_ambulancias=self.analisar_ambulancias, 
+                        funcao_disparar_evento=self.disparar_evento, triagem_id=triagem.id)
 
         self.confirmar_triagem_window.show()
 

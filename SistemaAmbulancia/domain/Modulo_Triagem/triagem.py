@@ -2,8 +2,10 @@ from events.gerenciador_eventos import Gerenciador_eventos
 
 class Triagem:
 
-    def __init__(self, ocorrencia: str, gerenciador_eventos: Gerenciador_eventos, latitude_do_chamado: float, longitude_do_chamado: float):
+    def __init__(self, id:int, ocorrencia: str, gerenciador_eventos: Gerenciador_eventos, 
+                 latitude_do_chamado: float, longitude_do_chamado: float):
         
+        self.id = id
         self.ocorrencia = ocorrencia
         self.prioridade = None
         self.qtdAmbulancias = None

@@ -8,7 +8,8 @@ import re
 class Carregar_triagem_window(QMainWindow):
 
     def __init__(self, carregando: bool, prioridade:str = None , qtd_ambulancias:int = None, 
-                 placas_ambulancias: list = None, funcao_verificar_ambulancias: Callable = None, funcao_disparar_evento: Callable = None):
+                 placas_ambulancias: list = None, funcao_verificar_ambulancias: Callable = None, 
+                 funcao_disparar_evento: Callable = None, triagem_id: int = None):
         super().__init__()
 
         tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
@@ -19,6 +20,7 @@ class Carregar_triagem_window(QMainWindow):
         self.prioridade = prioridade
         self.qtd_ambulancias = qtd_ambulancias
         self.placas_ambulancias = placas_ambulancias
+        self.triagem_id = triagem_id
 
         self.funcao_verificar_ambulancias = funcao_verificar_ambulancias
         self.funcao_disparar_evento = funcao_disparar_evento
@@ -198,9 +200,10 @@ class Carregar_triagem_window(QMainWindow):
             return
         
         dados_triagem = {
+            "id": self.triagem_id,
             "prioridade": prioridade,
             "qtd_ambulancias": qtd_ambulancias,
-            "ambulancias": placas_das_ambulancias_lista_corrigidas
+            "ambulancias": ambulancias_objetos
         }
 
         self.close()

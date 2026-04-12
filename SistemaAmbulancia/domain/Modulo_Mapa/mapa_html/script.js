@@ -187,7 +187,6 @@ function atualizar_status(id, status){
 
 }
 
-
 const ambulancias = [];
 
 const chamadas = [];
