@@ -74,9 +74,15 @@ class Gerenciador_telas:
     def abrir_tela_confirmar_triagem(self, triagem: Triagem):
 
         self.carregar_triagem_window.close()
+
+        placas_ambulancias = []
+
+        for ambulancia in triagem.ambulancias:
+
+            placas_ambulancias.append(ambulancia.placa)
         
         self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
-                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=triagem.ambulancias, 
+                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=placas_ambulancias, 
                         funcao_verificar_ambulancias=self.analisar_ambulancias, funcao_disparar_evento=self.disparar_evento)
 
         self.confirmar_triagem_window.show()

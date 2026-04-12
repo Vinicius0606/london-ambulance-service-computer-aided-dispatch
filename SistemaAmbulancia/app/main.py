@@ -21,7 +21,6 @@ class Sistema_principal:
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.comecar_thread_IA)
 
         self.banco_de_dados = Conexao_BD()
-        self.ia_triagem = IATriagem(self.gerenciador_eventos)
 
         self.atendente = Atendente(1, "a", "asdas", "asdasd", "Atendente", self.gerenciador_eventos)
 
@@ -36,6 +35,8 @@ class Sistema_principal:
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
         self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos()
 
+        self.ia_triagem = IATriagem(self.gerenciador_eventos, self.ambulancias)
+
     def comecar_thread_IA(self):
 
         self.ia_triagem.start()
@@ -44,7 +45,8 @@ class Sistema_principal:
         
         print(f"{chamada.descricao}\n\n\n\n\n")
 
-        triagem = Triagem(chamada.descricao, self.gerenciador_eventos)
+        triagem = Triagem(chamada.descricao, self.gerenciador_eventos, 
+                          chamada.endereco.latitude, chamada.endereco.longitude)
 
         self.triagens_esperando_confirmacao.append(triagem)
 

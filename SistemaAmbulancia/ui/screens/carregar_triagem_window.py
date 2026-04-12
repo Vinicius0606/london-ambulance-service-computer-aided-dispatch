@@ -176,7 +176,15 @@ class Carregar_triagem_window(QMainWindow):
 
         placas_das_ambulancias_lista = re.split(r"[ ,;|]+", placas_das_ambulancias)
 
-        ambulancias_objetos = self.funcao_verificar_ambulancias(placas_das_ambulancias_lista)
+        placas_das_ambulancias_lista_corrigidas = []
+
+        for placa in placas_das_ambulancias_lista:
+
+            placas_das_ambulancias_lista_corrigidas.append((placa.strip()))
+
+            if(qtd_ambulancias == 1): break
+
+        ambulancias_objetos = self.funcao_verificar_ambulancias(placas_das_ambulancias_lista_corrigidas)
 
         if not ambulancias_objetos:
             
@@ -192,7 +200,7 @@ class Carregar_triagem_window(QMainWindow):
         dados_triagem = {
             "prioridade": prioridade,
             "qtd_ambulancias": qtd_ambulancias,
-            "ambulancias": placas_das_ambulancias_lista
+            "ambulancias": placas_das_ambulancias_lista_corrigidas
         }
 
         self.close()
