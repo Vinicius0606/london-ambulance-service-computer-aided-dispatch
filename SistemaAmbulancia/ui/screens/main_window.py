@@ -213,6 +213,8 @@ class Janela_principal(QMainWindow):
 
         self.layout_lista_atendimentos.addWidget(card)
 
+        return card
+
     def __criar_card_div_nome_prioridade_endereco(self, nome_paciente: str, endereco: str, status: str = None, prioridade: int = None):
         
         if nome_paciente == None: nome_paciente = "Não especificado"

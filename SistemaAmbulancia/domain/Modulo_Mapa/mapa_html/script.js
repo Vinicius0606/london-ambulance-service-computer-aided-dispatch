@@ -86,6 +86,8 @@ class Chamada{
     }
 
     adicionar_marker(map) {
+
+        remover_rota_atual()
         
         this.marker = L.marker(
 
@@ -97,11 +99,27 @@ class Chamada{
 
     atualizar_status(status){
 
-        if(this.marker){
+        if(status === "Pendente"){
 
             this.status = status;
 
             this.marker.setIcon(chamadaPendenteIcon);
+            
+        }else if(status === "Alocado"){
+
+            this.status = status;
+
+            this.marker.setIcon(chamadaAlocadaIcon);
+            
+        }
+
+    }
+
+    remover_marker(map){
+
+        if(this.marker){
+
+            map.removeLayer(this.marker)
         }
     }
 }
@@ -136,6 +154,7 @@ function adicionar_ambulancia(id, latitude, longitude, status){
     ambulancia.adicionar_marker(map);
 
     ambulancias.push(ambulancia);
+
 }
 
 function adicionar_rota_ambulancia(id, latitudeD, longitudeD){
@@ -144,7 +163,7 @@ function adicionar_rota_ambulancia(id, latitudeD, longitudeD){
 
     if(!ambulancia) return null;
 
-    ambulancia.adicionar_rota(latitudeD, longitudeD)
+    ambulancia.adicionar_rota(latitudeD, longitudeD);
 }
 
 function adicionar_chamada(id, latitude, longitude, status){
@@ -152,6 +171,8 @@ function adicionar_chamada(id, latitude, longitude, status){
     const chamada = new Chamada(id, latitude, longitude, status);
 
     chamada.adicionar_marker(map)
+
+    chamada.atualizar_status(status);
 
     chamadas.push(chamada)
 
@@ -177,13 +198,33 @@ function remover_rota_atual(){
     }
 }
 
-function atualizar_status(id, status){
+function atualizar_status_ambulancia(id, status){
 
-    const ambulancia = ambulancias.find(a => a.id === id)
+    const ambulancia = ambulancias.find(a => a.id === id);
 
-    if(!ambulancia) return null;
+    if(!ambulancia) return "Não encontrado";
 
-    ambulancia.atualizar_status(status)
+    ambulancia.atualizar_status(status);
+
+}
+
+function atualizar_status_chamada(id, status){
+
+    const chamada = chamadas.find(a => a.id === id)
+
+    if(!chamada) return null;
+
+    chamada.atualizar_status(status)
+
+}
+
+function remover_chamada(id){
+
+    const chamada = chamadas.find(a => a.id === id);
+
+    if(!chamada) return null;
+
+    chamada.remover_marker(map);
 
 }
 
@@ -242,7 +283,14 @@ const ambulanciaIndisponivelIcon = L.icon({
 });
 
 const chamadaPendenteIcon = L.icon({
-    iconUrl: "./assets/chamada.png",
+    iconUrl: "./assets/chamada-pendente.png",
+    iconSize: [24, 24],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+})
+
+const chamadaAlocadaIcon = L.icon({
+    iconUrl: "./assets/chamada-alocada.png",
     iconSize: [24, 24],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16]

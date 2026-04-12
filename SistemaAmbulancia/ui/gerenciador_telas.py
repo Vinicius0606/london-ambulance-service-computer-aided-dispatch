@@ -26,8 +26,12 @@ class Gerenciador_telas:
 
         self.carregar_triagem_window = None
 
+        self.cards_atendimento = []
+
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.abrir_tela_carregando_triagem)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Enviar_triagem_analise", self.abrir_tela_confirmar_triagem)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Atendimento_criado", self.criar_card_atendimento)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Atendimento_finalizado", self.remover_card_atendimento)
 
     def abrir_tela_principal(self):
 
@@ -67,6 +71,10 @@ class Gerenciador_telas:
 
     def abrir_tela_carregando_triagem(self):
 
+        self.tela_registro.hide()
+
+        self.tela_principal.showMaximized()
+
         self.carregar_triagem_window = Carregar_triagem_window(carregando=True)
 
         self.carregar_triagem_window.show()
@@ -91,6 +99,22 @@ class Gerenciador_telas:
     def disparar_evento(self, nome_evento: str, dados):
 
         self.gerenciador_eventos.emitir_evento(nome_evento, dados)
+    
+    def criar_card_atendimento(self, atendimento):
+
+        card = self.tela_principal.adicionar_card_atendimento(
+                atendimento.chamada.nome_solicitante, atendimento.chamada.prioridade, 
+                atendimento.chamada.endereco.logradouro, atendimento.hora_inicio)
+        
+        self.cards_atendimento.append({"card": card, "id": atendimento.chamada.id})
+        
+    def remover_card_atendimento(self, atendimento):
+
+        for card in self.cards_atendimento:
+
+            if card["id"] == atendimento.chamada.id:
+
+                card["card"].deleteLater()
 
     def analisar_ambulancias(self, placas_ambulancias: list[str]):
 

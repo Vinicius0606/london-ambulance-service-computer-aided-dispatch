@@ -36,10 +36,9 @@ class Conexao_BD:
 
         for ambulancia in ambulancias_resultado:
 
-            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2], 
+            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2], ambulancia[3], ambulancia[4],
                                            self.gerenciador_eventos, status=ambulancia[5])
 
-            ambulancia_objeto.atualizarLocalizacao(ambulancia[3], ambulancia[4])
 
             ambulancias_lista.append(ambulancia_objeto)
 
@@ -49,7 +48,7 @@ class Conexao_BD:
     
         cursor = self.cursor
         
-        sql = """SELECT c.ID_chamada, c.nome_solicitante, c.descricao, c.data_hora, c.prioridade , e.ID_endereco, e.CEP, 
+        sql = """SELECT c.ID_chamada, c.nome_solicitante, c.descricao, c.data_hora, c.prioridade, c.status , e.ID_endereco, e.CEP, 
             e.logradouro, e.bairro, e.cidade, e.estado, e.latitude, e.longitude, e.complemento, e.numero 
             FROM chamada c left join endereco e on c.ID_endereco = e.ID_endereco"""
 
@@ -61,10 +60,11 @@ class Conexao_BD:
 
         for chamada in chamadas_resultado:
 
-            endereco_objeto = Endereco(chamada[6], chamada[7], chamada[8], chamada[9], 
-                                       chamada[10], chamada[11], chamada[12], chamada[13], chamada[14])
+            endereco_objeto = Endereco(chamada[7], chamada[8], chamada[9], 
+                                       chamada[10], chamada[11], chamada[12], chamada[13], chamada[14], chamada[15])
 
-            chamada_objeto = Chamada(endereco_objeto ,chamada[2], self.gerenciador_eventos, chamada[3], id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1])
+            chamada_objeto = Chamada(endereco_objeto ,chamada[2], self.gerenciador_eventos, chamada[3], 
+                                id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1], status=chamada[5])
 
             chamadas_lista.append(chamada_objeto)
 
@@ -113,6 +113,8 @@ class Conexao_BD:
             atendimento_objeto = Atendimento(atendimento[0], chamada_do_atendimento, 
                                              atendimento[2], ambulancias_do_atendimento , self.gerenciador_eventos,
                                              atendimento[3] if atendimento[3] != None else datetime.now())
+
+            atendimento_objeto.criarDespachos()
 
             lista_atendimentos.append(atendimento_objeto)
 

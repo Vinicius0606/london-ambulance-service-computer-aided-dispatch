@@ -9,6 +9,7 @@ from domain.Modulo_Triagem.IATriagem import IATriagem
 from domain.Modulo_Chamada.chamada import Chamada
 from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Usuario.atendente import Atendente
+from app.simulacao import Simulacao
 
 class Sistema_principal:
 
@@ -17,6 +18,8 @@ class Sistema_principal:
         self.app = QApplication(sys.argv)
 
         self.gerenciador_eventos = Gerenciador_eventos()
+
+        self.simulacao = Simulacao(self.gerenciador_eventos)
 
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Chamada_registrada", self.chamada_registrada)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.comecar_thread_IA)
@@ -80,10 +83,6 @@ class Sistema_principal:
 
         self.atendimentos_andamento.append(atendimento)
 
-        self.Gerenciador_telas.tela_principal.adicionar_card_atendimento(
-                atendimento.chamada.nome_solicitante, atendimento.chamada.prioridade, 
-                atendimento.chamada.endereco.logradouro, atendimento.hora_inicio)
-
     def iniciar_telas(self):
 
         self.mapa_tela_Principal = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento, self.gerenciador_eventos)
@@ -95,8 +94,7 @@ class Sistema_principal:
 
         for atendimento in self.atendimentos_andamento:
 
-            self.Gerenciador_telas.tela_principal.adicionar_card_atendimento(
-                atendimento.chamada.nome_solicitante, atendimento.chamada.prioridade, atendimento.chamada.endereco.logradouro, atendimento.hora_inicio)
+            self.Gerenciador_telas.criar_card_atendimento(atendimento)
 
         self.Gerenciador_telas.abrir_tela_principal()
 

@@ -23,7 +23,8 @@ class Atendente(Usuario):
         endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
                             info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])
 
-        chamada = Chamada(endereco, info_chamada["descricao"], self.gerenciador_eventos , id=self.chamada_id_registrada, nome_solicitante=info_chamada["nome"])
+        chamada = Chamada(endereco, info_chamada["descricao"], self.gerenciador_eventos , id=self.chamada_id_registrada, 
+                    nome_solicitante=info_chamada["nome"])
 
         self.chamada_id_registrada -= 1
 

@@ -16,17 +16,20 @@ class Despacho:
         self.horaInicio = datetime.now()
         self.horaChegadaLocalEstimada = None
         self.horaChegadaLocal = None
-        self.status = Status.EMTRANSITO
+        self.status = Status.EMTRANSITO.value
 
         self.gerenciador_eventos = gerenciador_eventos
 
         gerenciador_eventos.emitir_evento("Despacho_criado", self)
 
-    def atualizarHoraChegadaLocalEstimada():
-        pass
+    def atualizar_hora_chegada_local(self):
+        
+        self.horaChegadaLocal = datetime.now()
 
-    def atualizarHoraChegadaLocal():
-        pass
+        self.status = Status.RETORNANDO.value
 
-    def atualizarStatus():
-        pass
+    def finalizar_despacho(self):
+        
+        self.status = Status.FINALIZADO.value
+
+        self.ambulancia.atualizar_status("Disponivel")

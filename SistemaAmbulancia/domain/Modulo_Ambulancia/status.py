@@ -4,4 +4,4 @@ class Status(Enum):
 
     EMTRANSITO = "EmTransito"
     RETORNANDO = "Retornando"
-    ENCERRADO = "Encerrado"
+    FINALIZADO = "Finalizado"

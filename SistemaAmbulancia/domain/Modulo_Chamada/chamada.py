@@ -8,7 +8,7 @@ class Chamada:
 
     def __init__(self, endereco: Endereco, descricao: str, 
                  gerenciador_eventos: Gerenciador_eventos, data_hora: datetime = datetime.now(), id: int = None, 
-                 prioridade: Prioridade = None, nome_solicitante: str = None):
+                 prioridade: Prioridade = None, nome_solicitante: str = None, status: str = Status.PENDENTE.value):
         
         self.id = id
         self.nome_solicitante = nome_solicitante
@@ -16,7 +16,7 @@ class Chamada:
         self.descricao = descricao
         self.horaChamada = data_hora
         self.prioridade: str = prioridade
-        self.status: str = Status.PENDENTE.value
+        self.status: str = status
 
         self.gerenciador_eventos = gerenciador_eventos
 

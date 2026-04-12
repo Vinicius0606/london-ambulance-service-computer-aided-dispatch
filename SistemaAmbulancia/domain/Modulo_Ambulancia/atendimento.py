@@ -16,11 +16,14 @@ class Atendimento:
         self.chamada = chamada
         self.qtd_ambulancias = qtdAmbulancias
         self.ambulancias_alocadas = ambulancias
-        self.despachos = []
+        self.despachos: list[Despacho] = []
         
         self.gerenciador_eventos = gerenciador_eventos
 
-        self.id_despacho = -1
+        self.id_despacho = 0
+
+        self.gerenciador_eventos.emitir_evento("Atendimento_criado", self)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Ambulancia_chegou_no_hospital", self.retirar_despacho)
 
     def criarDespachos(self):
         
@@ -31,5 +34,29 @@ class Atendimento:
             self.despachos.append(despacho)
 
 
-    def finalizarAtendimento():
-        pass
+    def retirar_despacho(self, despacho: Despacho):
+
+        if despacho.chamada.id != self.chamada.id: return
+
+        for index, despacho_lista_item in enumerate(self.despachos):
+
+            if despacho_lista_item.ambulancia.id == despacho.ambulancia.id:
+
+                self.despachos.pop(index)
+
+                despacho.ambulancia.atualizar_status("Disponivel")
+
+                break
+        
+        if len(self.despachos) == 0:
+
+            self.finalizarAtendimento()
+
+
+    def finalizarAtendimento(self):
+        
+        self.chamada.atualizar_dados(prioridade=None, status="Encerrado")
+
+        self.hora_finalizacao = datetime.now()
+
+        self.gerenciador_eventos.emitir_evento("Atendimento_finalizado", self)
