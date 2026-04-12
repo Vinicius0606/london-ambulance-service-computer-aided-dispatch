@@ -7,11 +7,13 @@ from ui.screens.carregar_triagem_window import Carregar_triagem_window
 from domain.Modulo_Mapa.mapa import Mapa
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Triagem.triagem import Triagem
+from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 
 class Gerenciador_telas:
 
     def __init__(self, mapa_tela_principal: Mapa, mapa_tela_mapa: Mapa, 
-                 mapa_tela_ambulancia: Mapa, gerenciador_eventos: Gerenciador_eventos):
+                 mapa_tela_ambulancia: Mapa, gerenciador_eventos: Gerenciador_eventos,
+                 ambulancias: list[Ambulancia]):
 
         self.tela_principal = Janela_principal(mapa_tela_principal, self.abrir_tela_registro, self.abrir_tela_mapa, self.abrir_tela_ambulancia)
         self.tela_mapa = Mapa_window(mapa_tela_mapa, self.abrir_tela_principal, self.abrir_tela_ambulancia)
@@ -19,6 +21,8 @@ class Gerenciador_telas:
         self.tela_ambulancia = Aceitar_Chamada_Window(mapa_tela_ambulancia, self.abrir_tela_principal, self.abrir_tela_mapa)
 
         self.gerenciador_eventos = gerenciador_eventos
+
+        self.ambulancias = ambulancias
 
         self.carregar_triagem_window = None
 
@@ -72,10 +76,32 @@ class Gerenciador_telas:
         self.carregar_triagem_window.close()
         
         self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
-                                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=triagem.ambulancias)
+                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=triagem.ambulancias, 
+                        funcao_verificar_ambulancias=self.analisar_ambulancias, funcao_disparar_evento=self.disparar_evento)
 
         self.confirmar_triagem_window.show()
 
     def disparar_evento(self, nome_evento: str, dados):
 
         self.gerenciador_eventos.emitir_evento(nome_evento, dados)
+
+    def analisar_ambulancias(self, placas_ambulancias: list[str]):
+
+        ambulancias_alocadas: list[Ambulancia] = []
+
+        for placa in placas_ambulancias:
+
+            existe_ambulancia = False
+
+            for ambulancia in self.ambulancias:
+
+                if ambulancia.placa == placa:
+                    
+                    existe_ambulancia = True
+                    ambulancias_alocadas.append(ambulancia)
+
+                    break
+
+            if not existe_ambulancia: return None
+
+        return ambulancias_alocadas

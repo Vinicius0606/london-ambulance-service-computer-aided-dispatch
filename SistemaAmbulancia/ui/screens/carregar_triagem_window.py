@@ -1,12 +1,14 @@
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QWidget, QHBoxLayout,
-QVBoxLayout, QPushButton, QComboBox, QLineEdit)
+QVBoxLayout, QPushButton, QComboBox, QLineEdit, QMessageBox)
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QColor, QIcon, QMovie
+from PySide6.QtGui import QMovie, QIntValidator
+from typing import Callable
+import re
 
 class Carregar_triagem_window(QMainWindow):
 
     def __init__(self, carregando: bool, prioridade:str = None , qtd_ambulancias:int = None, 
-                 placas_ambulancias: list = None):
+                 placas_ambulancias: list = None, funcao_verificar_ambulancias: Callable = None, funcao_disparar_evento: Callable = None):
         super().__init__()
 
         tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
@@ -17,6 +19,9 @@ class Carregar_triagem_window(QMainWindow):
         self.prioridade = prioridade
         self.qtd_ambulancias = qtd_ambulancias
         self.placas_ambulancias = placas_ambulancias
+
+        self.funcao_verificar_ambulancias = funcao_verificar_ambulancias
+        self.funcao_disparar_evento = funcao_disparar_evento
 
         self.setWindowFlags(Qt.FramelessWindowHint)
 
@@ -121,6 +126,10 @@ class Carregar_triagem_window(QMainWindow):
                 padding: 10px;                   
         """)
 
+        validador_numeros = QIntValidator()
+
+        input_qtd_ambulancias.setValidator(validador_numeros)
+
         input_qtd_ambulancias.setText((str)(self.qtd_ambulancias))
 
         label_placa_ambulancias = QLabel("Placa das Ambulancias: ")
@@ -142,10 +151,13 @@ class Carregar_triagem_window(QMainWindow):
 
         botao_confirmar = QPushButton("Enviar Triagem")
         botao_confirmar.setStyleSheet("""
-                
+
                 background-color: #1039b4;
                 padding: 10px;                   
         """)
+
+        botao_confirmar.clicked.connect(lambda: self.__enviar_dados_inseridos(
+            combo_box_prioridade.currentText(), int(input_qtd_ambulancias.text()), input_ambulancias.text(), input_ambulancias))
 
         layout.addWidget(label_prioridade, 1)
         layout.addWidget(combo_box_prioridade, 2, alignment=Qt.AlignTop)
@@ -159,8 +171,31 @@ class Carregar_triagem_window(QMainWindow):
 
         return div
 
+    def __enviar_dados_inseridos(self, prioridade: str, qtd_ambulancias: int, 
+                                 placas_das_ambulancias: str, input_ambulancias: QLineEdit):
 
+        placas_das_ambulancias_lista = re.split(r"[ ,;|]+", placas_das_ambulancias)
 
+        ambulancias_objetos = self.funcao_verificar_ambulancias(placas_das_ambulancias_lista)
+
+        if not ambulancias_objetos:
+            
+            input_ambulancias.setStyleSheet("""
+                        border: 2px solid red; 
+                        padding: 10px
+                    """)
+
+            QMessageBox.warning(self, "Placas Inexistente", "Digite placas de ambulâncias validas!!")
+
+            return
         
-        
+        dados_triagem = {
+            "prioridade": prioridade,
+            "qtd_ambulancias": qtd_ambulancias,
+            "ambulancias": placas_das_ambulancias_lista
+        }
+
+        self.close()
+
+        self.funcao_disparar_evento("Triagem_analisada", dados_triagem)
 

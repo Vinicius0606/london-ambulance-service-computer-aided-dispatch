@@ -59,7 +59,7 @@ class Sistema_principal:
         self.mapa_tela_ambulancia = Mapa(self.ambulancias, self.chamadas, self.atendimentos_andamento)
 
         self.Gerenciador_telas = Gerenciador_telas(self.mapa_tela_Principal, self.mapa_tela_mapa, 
-                                            self.mapa_tela_ambulancia, self.gerenciador_eventos)
+                                            self.mapa_tela_ambulancia, self.gerenciador_eventos, self.ambulancias)
 
         for atendimento in self.atendimentos_andamento:
 

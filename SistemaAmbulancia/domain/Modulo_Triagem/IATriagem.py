@@ -86,6 +86,8 @@ class IATriagem(QThread):
 
         texto = texto[inicio:fim]
 
+        print(texto)
+
         texto = json.loads(texto)
 
         self.analisarOcorrencia(texto)
