@@ -111,3 +111,46 @@ class Conexao_BD:
             lista_atendimentos.append(atendimento_objeto)
 
         return lista_atendimentos
+    
+    def update(self, tabela: str, id:int, novos_valores: dict):
+
+        cursor = self.cursor
+
+        colunas_para_alterar = {}
+
+        for coluna, valor in novos_valores.items():
+            
+            if valor is not None: colunas_para_alterar[coluna] = valor
+
+
+        clausulas = ", ".join([f"{coluna} = %s" for coluna in colunas_para_alterar.keys()])
+        valores = list(colunas_para_alterar.values())
+
+        sql = f"UPDATE {tabela} SET {clausulas} WHERE ID_{tabela} = {id}"
+
+        cursor.execute(sql, valores)
+
+        self.conexao.commit()
+
+    def insert(self, tabela: str, novos_valores: dict):
+
+        cursor = self.cursor
+
+        colunas_para_inserir = {}
+
+        for coluna, valor in novos_valores.items():
+            
+            if valor is not None: colunas_para_inserir[coluna] = valor
+
+
+        colunas = ", ".join(colunas_para_inserir.keys())
+
+        placeholders = ", ".join(["%s"] * len(colunas_para_inserir))
+
+        valores = list(colunas_para_inserir.values())
+
+        sql = f"INSERT INTO {tabela} ({colunas}) VALUES ({placeholders})"
+
+        cursor.execute(sql, valores)
+
+        self.conexao.commit()
