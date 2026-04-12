@@ -6,8 +6,8 @@ class Socorrista(Usuario):
     def __init__(self, id: int, nome: str, email: str, senhaHash: str, tipoUsuario: TipoUsuario):
         super().__init__(id, nome, email, senhaHash, tipoUsuario)
 
-    def aceitarChamada():
+    def aceitar_chamada():
         pass
 
-    def atualizarStatusAtendimento():
+    def atualizar_status_atendimento():
         pass

@@ -2,13 +2,13 @@ from ..Modulo_Usuario.socorrista import Socorrista
 
 class Equipe:
 
-    def __init__(self, id:int , nomeEquipe: str):
+    def __init__(self, id:int , nome_equipe: str):
         self.id = id
-        self.nomeEquipe = nomeEquipe
+        self.nome_equipe = nome_equipe
         self.socorristas = []
 
-    def adicionarSocorrista(socorrista: Socorrista):
+    def adicionar_socorrista(socorrista: Socorrista):
         pass
 
-    def removerSocorrista():
+    def remover_socorrista():
         pass

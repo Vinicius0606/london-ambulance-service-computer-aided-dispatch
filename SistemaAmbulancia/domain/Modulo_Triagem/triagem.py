@@ -8,7 +8,7 @@ class Triagem:
         self.id = id
         self.ocorrencia = ocorrencia
         self.prioridade = None
-        self.qtdAmbulancias = None
+        self.qtd_ambulancias = None
         self.ambulancias = None
         self.latitude_do_chamado = latitude_do_chamado
         self.longitude_do_chamado = longitude_do_chamado
@@ -34,6 +34,3 @@ class Triagem:
         self.ambulancias = triagem_dict["ambulancias"]
 
         self.gerenciador_eventos.emitir_evento("Enviar_triagem_analise", self)
-
-    def ajustarResultados():
-        pass

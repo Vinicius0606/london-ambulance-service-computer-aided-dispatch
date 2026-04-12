@@ -14,7 +14,7 @@ class Chamada:
         self.nome_solicitante = nome_solicitante
         self.endereco = endereco
         self.descricao = descricao
-        self.horaChamada = data_hora
+        self.hora_chamada = data_hora
         self.prioridade: str = prioridade
         self.status: str = status
 

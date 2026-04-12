@@ -114,7 +114,7 @@ class Conexao_BD:
                                              atendimento[2], ambulancias_do_atendimento , self.gerenciador_eventos,
                                              atendimento[3] if atendimento[3] != None else datetime.now())
 
-            atendimento_objeto.criarDespachos()
+            atendimento_objeto.criar_despachos()
 
             lista_atendimentos.append(atendimento_objeto)
 

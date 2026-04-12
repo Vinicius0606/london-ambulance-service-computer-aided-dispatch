@@ -12,7 +12,7 @@ class Usuario:
     def autenticar():
         pass
 
-    def alterarSenha():
+    def alterar_senha():
         pass
     
     

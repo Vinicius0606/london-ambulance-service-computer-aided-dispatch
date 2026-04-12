@@ -79,7 +79,7 @@ class Sistema_principal:
 
         self.id_atendimento -= 1
 
-        atendimento.criarDespachos()
+        atendimento.criar_despachos()
 
         self.atendimentos_andamento.append(atendimento)
 

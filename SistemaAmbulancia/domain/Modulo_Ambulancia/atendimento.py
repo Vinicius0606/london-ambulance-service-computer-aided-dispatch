@@ -25,7 +25,7 @@ class Atendimento:
         self.gerenciador_eventos.emitir_evento("Atendimento_criado", self)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Ambulancia_chegou_no_hospital", self.retirar_despacho)
 
-    def criarDespachos(self):
+    def criar_despachos(self):
         
         for ambulancia in self.ambulancias_alocadas:
 
@@ -50,10 +50,10 @@ class Atendimento:
         
         if len(self.despachos) == 0:
 
-            self.finalizarAtendimento()
+            self.finalizar_atendimento()
 
 
-    def finalizarAtendimento(self):
+    def finalizar_atendimento(self):
         
         self.chamada.atualizar_dados(prioridade=None, status="Encerrado")
 
