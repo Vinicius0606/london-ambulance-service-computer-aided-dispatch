@@ -99,6 +99,8 @@ class Chamada{
 
     atualizar_status(status){
 
+        if(!this.marker) return;
+
         if(status === "Pendente"){
 
             this.status = status;
@@ -210,7 +212,7 @@ function atualizar_status_ambulancia(id, status){
 
 function atualizar_status_chamada(id, status){
 
-    const chamada = chamadas.find(a => a.id === id)
+    const chamada = chamadas.find(c => c.id === id)
 
     if(!chamada) return null;
 

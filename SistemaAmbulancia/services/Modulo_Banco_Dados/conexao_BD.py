@@ -22,6 +22,15 @@ class Conexao_BD:
 
         self.gerenciador_eventos = gerenciador_eventos
 
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Armazenar_endereco_Banco_dados", self.insert)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Armazenar_chamada_Banco_dados", self.insert)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Armazenar_atendimento_Banco_dados", self.insert)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Armazenar_despacho_Banco_dados", self.insert)
+
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Atualizar_chamada_Banco_dados", self.update)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Atualizar_atendimento_Banco_dados", self.update)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Atualizar_despacho_Banco_dados", self.update)
+
     def retornar_ambulancias(self):
 
         cursor = self.cursor
@@ -50,7 +59,7 @@ class Conexao_BD:
     
         cursor = self.cursor
         
-        sql = """SELECT c.ID_chamada, c.nome_solicitante, c.descricao, c.data_hora, c.prioridade, c.status , e.ID_endereco, e.CEP, 
+        sql = """SELECT c.ID_chamada, c.nome_solicitante, c.descricao, c.hora_chamada, c.prioridade, c.status , e.ID_endereco, e.CEP, 
             e.logradouro, e.bairro, e.cidade, e.estado, e.latitude, e.longitude, e.complemento, e.numero 
             FROM chamada c left join endereco e on c.ID_endereco = e.ID_endereco"""
 
@@ -66,7 +75,8 @@ class Conexao_BD:
                                        chamada[10], chamada[11], chamada[12], chamada[13], chamada[14], chamada[15])
 
             chamada_objeto = Chamada(endereco_objeto ,chamada[2], self.gerenciador_eventos, chamada[3], 
-                                id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1], status=chamada[5])
+                                id=chamada[0], prioridade=chamada[4], nome_solicitante=chamada[1], status=chamada[5], 
+                                veio_do_banco_de_dados=True)
 
             chamadas_lista.append(chamada_objeto)
 
@@ -114,7 +124,7 @@ class Conexao_BD:
 
             atendimento_objeto = Atendimento(atendimento[0], chamada_do_atendimento, 
                                              atendimento[2], ambulancias_do_atendimento , self.gerenciador_eventos,
-                                             atendimento[3] if atendimento[3] != None else datetime.now())
+                                             atendimento[3] if atendimento[3] != None else datetime.now(), veio_do_banco_de_dados=True)
 
             atendimento_objeto.criar_despachos()
 
@@ -122,7 +132,7 @@ class Conexao_BD:
 
         return lista_atendimentos
     
-    def update(self, tabela: str, id:int, novos_valores: dict):
+    def update(self, novos_valores: dict):
 
         cursor = self.cursor
 
@@ -130,25 +140,29 @@ class Conexao_BD:
 
         for coluna, valor in novos_valores.items():
             
+            if coluna == "tabela" or coluna == "ID": continue
+
             if valor is not None: colunas_para_alterar[coluna] = valor
 
 
         clausulas = ", ".join([f"{coluna} = %s" for coluna in colunas_para_alterar.keys()])
         valores = list(colunas_para_alterar.values())
 
-        sql = f"UPDATE {tabela} SET {clausulas} WHERE ID_{tabela} = {id}"
+        sql = f"UPDATE {novos_valores['tabela']} SET {clausulas} WHERE ID_{novos_valores['tabela']} = {novos_valores['ID']}"
 
         cursor.execute(sql, valores)
 
         self.conexao.commit()
 
-    def insert(self, tabela: str, novos_valores: dict):
+    def insert(self, novos_valores: dict):
 
         cursor = self.cursor
 
         colunas_para_inserir = {}
 
         for coluna, valor in novos_valores.items():
+
+            if coluna == "tabela" or coluna == "objeto": continue
             
             if valor is not None: colunas_para_inserir[coluna] = valor
 
@@ -159,9 +173,11 @@ class Conexao_BD:
 
         valores = list(colunas_para_inserir.values())
 
-        sql = f"INSERT INTO {tabela} ({colunas}) VALUES ({placeholders})"
+        sql = f"INSERT INTO {novos_valores['tabela']} ({colunas}) VALUES ({placeholders})"
 
         cursor.execute(sql, valores)
+
+        novos_valores["objeto"].atualizar_ID(cursor.lastrowid)
 
         self.conexao.commit()
 

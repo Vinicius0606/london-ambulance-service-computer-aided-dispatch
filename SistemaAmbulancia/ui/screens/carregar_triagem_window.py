@@ -164,7 +164,8 @@ class Carregar_triagem_window(QMainWindow):
         """)
 
         botao_confirmar.clicked.connect(lambda: self.__enviar_dados_inseridos(
-            combo_box_prioridade.currentText(), int(input_qtd_ambulancias.text()), input_ambulancias.text(), input_ambulancias))
+                    combo_box_prioridade.currentText(), int(input_qtd_ambulancias.text()), 
+                    input_ambulancias.text(), input_ambulancias))
 
         layout.addWidget(label_prioridade, 1)
         layout.addWidget(combo_box_prioridade, 2, alignment=Qt.AlignTop)

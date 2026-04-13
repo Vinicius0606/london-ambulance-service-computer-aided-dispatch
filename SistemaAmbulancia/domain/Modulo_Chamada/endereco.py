@@ -3,6 +3,7 @@ class Endereco:
     def __init__(self, CEP: str, logradouro:str, bairro:str, cidade:str, 
                 estado:str, latitude:float, longitude:float, complemento:str | None = None, numero:int | None = None):
         
+        self.id = None
         self.CEP = CEP
         self.logradouro = logradouro
         self.numero = numero
@@ -12,3 +13,7 @@ class Endereco:
         self.complemento = complemento
         self.latitude = latitude
         self.longitude = longitude
+    
+    def atualizar_ID(self, id: int):
+
+        self.id = id

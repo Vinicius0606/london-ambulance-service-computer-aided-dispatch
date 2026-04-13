@@ -87,28 +87,28 @@ class IATriagem(QThread):
         {mensagem}
         """
 
-        resposta = enviar_mensagem_IA(prompt)
+        # resposta = enviar_mensagem_IA(prompt)
 
-        texto = resposta["message"]["content"]
+        # texto = resposta["message"]["content"]
 
-        inicio = texto.find("{")
+        # inicio = texto.find("{")
 
-        fim = texto.rfind("}") + 1
+        # fim = texto.rfind("}") + 1
 
-        texto = texto[inicio:fim]
+        # texto = texto[inicio:fim]
 
-        # texto = {
-        #     "tipo_ocorrencia": "mal_súbito",
-        #     "quantidade_vitimas": 2,
-        #     "inconsciente": True,
-        #     "respira": False,
-        #     "sangramento_intenso": False,
-        #     "dificuldade_respiratoria": False,
-        #     "suspeita_trauma": False,
-        #     "idade": None
-        #     }
+        texto = {
+            "tipo_ocorrencia": "mal_súbito",
+            "quantidade_vitimas": 1,
+            "inconsciente": True,
+            "respira": False,
+            "sangramento_intenso": False,
+            "dificuldade_respiratoria": False,
+            "suspeita_trauma": False,
+            "idade": None
+            }
 
-        ocorrencia = json.loads(texto)
+        ocorrencia = texto #json.loads(texto)
 
         prioridade = self.tipo_definir_prioridade.definir_prioridade(ocorrencia)
 
