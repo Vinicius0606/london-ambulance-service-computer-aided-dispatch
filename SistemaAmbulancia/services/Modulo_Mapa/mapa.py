@@ -1,10 +1,10 @@
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl
-from ..Modulo_Ambulancia.ambulancia import Ambulancia
-from ..Modulo_Ambulancia.atendimento import Atendimento
-from ..Modulo_Chamada.chamada import Chamada
+from domain.Modulo_Ambulancia.ambulancia import Ambulancia
+from domain.Modulo_Ambulancia.atendimento import Atendimento
+from domain.Modulo_Chamada.chamada import Chamada
 from events.gerenciador_eventos import Gerenciador_eventos
-from ..Modulo_Ambulancia.despacho import Despacho
+from domain.Modulo_Ambulancia.despacho import Despacho
 
 class Mapa:
 

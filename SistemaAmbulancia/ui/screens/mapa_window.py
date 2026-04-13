@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QWidget, QHBox
 QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushButton)
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QPixmap, QIcon
-from domain.Modulo_Mapa.mapa import Mapa
+from services.Modulo_Mapa.mapa import Mapa
 from typing import Callable
 
 class Mapa_window(QMainWindow):

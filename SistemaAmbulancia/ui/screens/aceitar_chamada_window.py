@@ -3,7 +3,7 @@ QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushB
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor
 import datetime
-from domain.Modulo_Mapa.mapa import Mapa
+from services.Modulo_Mapa.mapa import Mapa
 from typing import Callable
 
 class Aceitar_Chamada_Window(QMainWindow):

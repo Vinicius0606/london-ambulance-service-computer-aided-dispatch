@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from domain.Modulo_Mapa.mapa import Mapa
-from domain.Modulo_Banco_Dados.conexao_BD import Conexao_BD
+from services.Modulo_Mapa.mapa import Mapa
+from services.Modulo_Banco_Dados.conexao_BD import Conexao_BD
 from ui.gerenciador_telas import Gerenciador_telas
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Triagem.triagem import Triagem

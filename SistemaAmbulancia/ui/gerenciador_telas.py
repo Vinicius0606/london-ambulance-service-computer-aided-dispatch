@@ -4,7 +4,7 @@ from ui.screens.mapa_window import Mapa_window
 from ui.screens.registro_chamada_window import Registro_chamada_window
 from ui.screens.aceitar_chamada_window import Aceitar_Chamada_Window
 from ui.screens.carregar_triagem_window import Carregar_triagem_window
-from domain.Modulo_Mapa.mapa import Mapa
+from services.Modulo_Mapa.mapa import Mapa
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Triagem.triagem import Triagem
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia

@@ -3,7 +3,7 @@ QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushB
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QIcon
 from datetime import datetime
-from domain.Modulo_Mapa.mapa import Mapa
+from services.Modulo_Mapa.mapa import Mapa
 from ui.screens.registro_chamada_window import Registro_chamada_window
 from typing import Callable
 import copy

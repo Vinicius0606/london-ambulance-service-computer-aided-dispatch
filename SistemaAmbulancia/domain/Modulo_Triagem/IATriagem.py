@@ -1,4 +1,3 @@
-import ollama
 import json
 import requests
 from events.gerenciador_eventos import Gerenciador_eventos
@@ -6,6 +5,7 @@ from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from PySide6.QtCore import QThread, Signal
 from .tipos_escolher_ambulancia.interface_escolha_ambulancia import Interface_escolha_ambulancia
 from .tipos_definir_prioridade.interface_definir_prioridade import Interface_definir_prioridade
+from services.IA_Ollama.enviar_mensagem_IA import enviar_mensagem_IA
 
 class IATriagem(QThread):
     triagem_pronta = Signal(dict)
@@ -87,33 +87,28 @@ class IATriagem(QThread):
         {mensagem}
         """
 
-        # resposta = ollama.chat(
-        #     model="qwen3:8b",
-        #     messages=[
-        #         {"role": "user", "content": prompt}
-        #     ]
-        # )
+        resposta = enviar_mensagem_IA(prompt)
 
-        # texto = resposta["message"]["content"]
+        texto = resposta["message"]["content"]
 
-        # inicio = texto.find("{")
+        inicio = texto.find("{")
 
-        # fim = texto.rfind("}") + 1
+        fim = texto.rfind("}") + 1
 
-        # texto = texto[inicio:fim]
+        texto = texto[inicio:fim]
 
-        texto = {
-            "tipo_ocorrencia": "mal_súbito",
-            "quantidade_vitimas": 2,
-            "inconsciente": True,
-            "respira": False,
-            "sangramento_intenso": False,
-            "dificuldade_respiratoria": False,
-            "suspeita_trauma": False,
-            "idade": None
-            }
+        # texto = {
+        #     "tipo_ocorrencia": "mal_súbito",
+        #     "quantidade_vitimas": 2,
+        #     "inconsciente": True,
+        #     "respira": False,
+        #     "sangramento_intenso": False,
+        #     "dificuldade_respiratoria": False,
+        #     "suspeita_trauma": False,
+        #     "idade": None
+        #     }
 
-        ocorrencia = texto #json.loads(texto)
+        ocorrencia = json.loads(texto)
 
         prioridade = self.tipo_definir_prioridade.definir_prioridade(ocorrencia)
 

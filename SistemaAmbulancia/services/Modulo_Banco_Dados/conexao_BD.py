@@ -1,8 +1,8 @@
 import pymysql
-from ..Modulo_Ambulancia.ambulancia import Ambulancia
-from ..Modulo_Chamada.chamada import Chamada
-from ..Modulo_Chamada.endereco import Endereco
-from ..Modulo_Ambulancia.atendimento import Atendimento
+from domain.Modulo_Ambulancia.ambulancia import Ambulancia
+from domain.Modulo_Chamada.chamada import Chamada
+from domain.Modulo_Chamada.endereco import Endereco
+from domain.Modulo_Ambulancia.atendimento import Atendimento
 from datetime import datetime
 from events.gerenciador_eventos import Gerenciador_eventos
 
@@ -164,3 +164,5 @@ class Conexao_BD:
         cursor.execute(sql, valores)
 
         self.conexao.commit()
+
+        
