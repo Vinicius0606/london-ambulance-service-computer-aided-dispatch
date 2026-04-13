@@ -85,7 +85,7 @@ class Simulacao:
 
         pontos_da_rota_index = self.temporizadores_funcao[index_temporizadores_funcao]["index"]
 
-        despacho.ambulancia.atualizarLocalizacao(
+        despacho.ambulancia.atualizar_localizacao(
             pontos_da_rota[pontos_da_rota_index][1], pontos_da_rota[pontos_da_rota_index][0])
         
         pontos_da_rota_index += 1

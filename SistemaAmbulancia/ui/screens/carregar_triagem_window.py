@@ -145,9 +145,14 @@ class Carregar_triagem_window(QMainWindow):
 
         string_placas_ambulancias = ""
 
-        for placa_ambulancia in self.placas_ambulancias:
+        for index, placa_ambulancia in enumerate(self.placas_ambulancias):
+            
+            string_placas_ambulancias += (placa_ambulancia)
 
-            string_placas_ambulancias += (placa_ambulancia + " ")
+            if index != len(self.placas_ambulancias) - 1:
+
+                string_placas_ambulancias += " "
+
 
         input_ambulancias.setText(string_placas_ambulancias)
 

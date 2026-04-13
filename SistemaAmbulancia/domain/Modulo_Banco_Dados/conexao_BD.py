@@ -26,7 +26,7 @@ class Conexao_BD:
 
         cursor = self.cursor
         
-        sql = "SELECT ID_ambulancia, placa, tipo, latitude, longitude, status FROM ambulancia"
+        sql = "SELECT ID_ambulancia, placa, latitude, longitude, status FROM ambulancia"
 
         cursor.execute(sql)
 
@@ -35,9 +35,11 @@ class Conexao_BD:
         ambulancias_lista: list[Ambulancia] = []
 
         for ambulancia in ambulancias_resultado:
+            
+            print
 
-            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2], ambulancia[3], ambulancia[4],
-                                           self.gerenciador_eventos, status=ambulancia[5])
+            ambulancia_objeto = Ambulancia(ambulancia[0], ambulancia[1], ambulancia[2], ambulancia[3],
+                                           self.gerenciador_eventos, status=ambulancia[4])
 
 
             ambulancias_lista.append(ambulancia_objeto)

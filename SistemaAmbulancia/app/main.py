@@ -10,6 +10,8 @@ from domain.Modulo_Chamada.chamada import Chamada
 from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Usuario.atendente import Atendente
 from app.simulacao import Simulacao
+from domain.Modulo_Triagem.tipos_escolher_ambulancia.escolher_ambulancia_hipotenusa import Escolher_ambulancia_hipotenusa
+from domain.Modulo_Triagem.tipos_definir_prioridade.definir_prioridade_pontuacao import Definir_prioridade_pontuacao
 
 class Sistema_principal:
 
@@ -39,8 +41,12 @@ class Sistema_principal:
 
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
         self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos()
+        
+        self.tipo_escolha_ambulancia = Escolher_ambulancia_hipotenusa()
+        self.tipo_definir_prioridade = Definir_prioridade_pontuacao()
 
-        self.ia_triagem = IATriagem(self.gerenciador_eventos, self.ambulancias)
+        self.ia_triagem = IATriagem(self.gerenciador_eventos, self.ambulancias, 
+                                    self.tipo_escolha_ambulancia, self.tipo_definir_prioridade)
         self.id_triagem = -1
         self.id_atendimento = -1
 

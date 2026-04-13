@@ -4,11 +4,14 @@ import requests
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from PySide6.QtCore import QThread, Signal
+from .tipos_escolher_ambulancia.interface_escolha_ambulancia import Interface_escolha_ambulancia
+from .tipos_definir_prioridade.interface_definir_prioridade import Interface_definir_prioridade
 
 class IATriagem(QThread):
     triagem_pronta = Signal(dict)
 
-    def __init__(self, gerenciador_eventos: Gerenciador_eventos, ambulancias: list[Ambulancia]):
+    def __init__(self, gerenciador_eventos: Gerenciador_eventos, ambulancias: list[Ambulancia], 
+                 tipo_escolher_ambulancia: Interface_escolha_ambulancia, tipo_definir_prioridade: Interface_definir_prioridade):
         
         super().__init__()
 
@@ -23,6 +26,9 @@ class IATriagem(QThread):
         self.gerenciador_eventos = gerenciador_eventos
 
         self.ambulancias = ambulancias
+
+        self.tipo_escolher_ambulancia = tipo_escolher_ambulancia
+        self.tipo_definir_prioridade = tipo_definir_prioridade
 
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_iniciada", self.atualizar_ocorrencia)
         self.triagem_pronta.connect(self.enviar_finilizacao_thread)
@@ -107,68 +113,16 @@ class IATriagem(QThread):
             "idade": None
             }
 
-        print(texto)
+        ocorrencia = texto #json.loads(texto)
 
-        # texto = json.loads(texto)
+        prioridade = self.tipo_definir_prioridade.definir_prioridade(ocorrencia)
 
-        self.analisar_ocorrencia(texto)
-
-    def analisar_ocorrencia(self, ocorrencia: dict):
-        pontuacao = 0
-        justificativa = []
-        resultado = {}
-
-        if not ocorrencia["respira"]:
-
-            pontuacao = 90
-            justificativa.append("parada respiratoria")
-
-        elif ocorrencia["sangramento_intenso"]:
-
-            pontuacao = 90
-            justificativa.append("sangramento intenso")
-      
-        elif ocorrencia["quantidade_vitimas"] >= 2 and ocorrencia["suspeita_trauma"]:
-            pontuacao = 90
-            justificativa.append(f"{ocorrencia['quantidade_vitimas']} vitimas e suspeita de trauma")
-
-        if ocorrencia["suspeita_trauma"]:
-            pontuacao += 60
-            justificativa.append("suspeita de trauma")
-        
-        if ocorrencia["inconsciente"]:
-            pontuacao += 50
-            justificativa.append("vitima inconsciente")
-        
-        if ocorrencia["dificuldade_respiratoria"]:
-
-            pontuacao += 40
-            justificativa.append("Dificuldade respiratoria")
-
-        if ocorrencia["quantidade_vitimas"] >= 2:
-            pontuacao += 30
-            justificativa.append(f"{ocorrencia['quantidade_vitimas']} vitimas")
-
-        elif ocorrencia["quantidade_vitimas"] == 1:
-            pontuacao += 20
-            justificativa.append("1 vitima")
-
-        else:
-            pontuacao += 10
-            justificativa.append("Transporte de incapacitado")
-        
-        resultado = {
-            "pontuacao": pontuacao,
-            "justificativa": justificativa
-        }
-
-        prioridade = self.definir_prioridade(resultado)
-
-        ambulancia_info = self.denifir_ambulancias_para_ocorrencia(ocorrencia["quantidade_vitimas"])
+        ambulancia_info = self.tipo_escolher_ambulancia.escolher_ambulancias(self.ambulancias, ocorrencia["quantidade_vitimas"], 
+                                                                             self.latitude_do_chamado, self.longitude_do_chamado)
 
         qtd_ambulancias = ambulancia_info["qtd_ambulancias"]
 
-        ambulancias = ambulancia_info["ambulancia"]
+        ambulancias = ambulancia_info["ambulancias"]
 
         triagem_dict = {
             "prioridade": prioridade,
@@ -177,80 +131,3 @@ class IATriagem(QThread):
         }
 
         self.triagem_pronta.emit(triagem_dict)
-
-    def definir_prioridade(self, resultado_triagem: dict):
-
-        prioridade = 0
-        
-        if resultado_triagem["pontuacao"] <= 10:
-            prioridade = 1
-
-        elif resultado_triagem["pontuacao"] > 10   and resultado_triagem["pontuacao"] < 60:
-            prioridade = 2
-
-        elif resultado_triagem["pontuacao"] >= 60 and resultado_triagem["pontuacao"] < 90:
-            prioridade = 3
-
-        else:
-            prioridade = 4
-
-        return prioridade
-
-
-    def denifir_ambulancias_para_ocorrencia(self, qtd_vitimas: int):
-        
-        menor_distancia_pro_chamado: float = 30 #Raio de operacao do sistema acrescentado em 10
-
-        escolha_de_ambulancia = []
-        ambulancias_para_remover = []
-
-        if qtd_vitimas < 4 :
-            qtd_ambulancias = qtd_vitimas
-
-        elif qtd_vitimas >= 4:
-            qtd_ambulancias = 4
-
-        aux_qtd_ambulancias = qtd_ambulancias
-
-        while aux_qtd_ambulancias > 0:
-
-            for ambulancia in self.ambulancias:
-
-                distancia = self.buscar_ambulancias_proximas([ambulancia.latitudeAtual, ambulancia.longitudeAtual])
-
-                if distancia["distancia_km"] < menor_distancia_pro_chamado and ambulancia not in escolha_de_ambulancia: 
-                    menor_distancia_pro_chamado = distancia["distancia_km"]
-                    ambulancias_para_remover.append(ambulancia)
-
-            escolha_de_ambulancia.append(ambulancias_para_remover[-1])
-            
-            aux_qtd_ambulancias -= 1
-  
-        return{
-            "ambulancia": escolha_de_ambulancia,
-            "qtd_ambulancias": qtd_ambulancias
-        }
-
-    def buscar_ambulancias_proximas(self, posicao_ambulancia):
-        
-        
-        url = (
-            f"https://router.project-osrm.org/route/v1/driving/"
-            f"{posicao_ambulancia[1]},{posicao_ambulancia[0]};{self.longitude_do_chamado},{self.latitude_do_chamado}"
-            f"?overview=full&geometries=geojson"
-        )
-
-        resposta = requests.get(url)
-        resposta.raise_for_status()
-
-        dados = resposta.json()
-
-        if not dados.get("routes"):
-            return None
-
-        rota = dados["routes"][0]
-
-        return {
-            "distancia_metros": rota["distance"],
-            "distancia_km": rota["distance"] / 1000,
-        }

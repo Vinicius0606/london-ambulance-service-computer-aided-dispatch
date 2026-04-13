@@ -29,6 +29,3 @@ class Atendente(Usuario):
         self.chamada_id_registrada -= 1
 
         self.gerenciador_eventos.emitir_evento("Chamada_registrada", chamada)
-
-    def confirmarTriagem():
-        pass

@@ -116,14 +116,6 @@ class Mapa:
             f"atualizar_status_ambulancia({ambulancia.id}, '{ambulancia.status}')"
         )
 
-    def exibirAtendimentos():
-        pass
-
-    def exibirRotas(self, ambulancia: Ambulancia, latitude_destino: float, longitude_destino: float):
-        self.mapa_web.page().runJavaScript(
-            f"desenhar_rota({ambulancia.id}, {ambulancia.latitudeAtual}, {ambulancia.longitudeAtual}, {latitude_destino}, {longitude_destino})"
-        )
-
     def retornar_mapa_QWidget(self):
 
         if(self.mapa_web): return self.mapa_web

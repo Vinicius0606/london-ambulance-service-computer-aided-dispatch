@@ -1,5 +1,5 @@
-from .ambulancia import Ambulancia
-from .status import Status
+from domain.Modulo_Ambulancia.ambulancia import Ambulancia
+from domain.Modulo_Ambulancia.status import Status
 from domain.Modulo_Chamada.chamada import Chamada
 from datetime import datetime
 from events.gerenciador_eventos import Gerenciador_eventos
@@ -13,9 +13,9 @@ class Despacho:
         self.chamada: Chamada = chamada
         self.ambulancia = ambulancia
         self.observacoes = observacoes
-        self.horaInicio = datetime.now()
-        self.horaChegadaLocalEstimada = None
-        self.horaChegadaLocal = None
+        self.hora_inicio = datetime.now()
+        self.hora_chegada_local_estimada = None
+        self.hora_chegada_local = None
         self.status = Status.EMTRANSITO.value
 
         self.gerenciador_eventos = gerenciador_eventos
