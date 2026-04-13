@@ -98,7 +98,7 @@ class IATriagem(QThread):
 
         texto = {
             "tipo_ocorrencia": "mal_súbito",
-            "quantidade_vitimas": 1,
+            "quantidade_vitimas": 2,
             "inconsciente": True,
             "respira": False,
             "sangramento_intenso": False,
@@ -107,7 +107,7 @@ class IATriagem(QThread):
             "idade": None
             }
 
-        # print(texto)
+        print(texto)
 
         # texto = json.loads(texto)
 
@@ -202,6 +202,7 @@ class IATriagem(QThread):
         menor_distancia_pro_chamado: float = 30 #Raio de operacao do sistema acrescentado em 10
 
         escolha_de_ambulancia = []
+        ambulancias_para_remover = []
 
         if qtd_vitimas < 4 :
             qtd_ambulancias = qtd_vitimas
@@ -219,8 +220,9 @@ class IATriagem(QThread):
 
                 if distancia["distancia_km"] < menor_distancia_pro_chamado and ambulancia not in escolha_de_ambulancia: 
                     menor_distancia_pro_chamado = distancia["distancia_km"]
-                    escolha_de_ambulancia.clear()
-                    escolha_de_ambulancia.append(ambulancia)
+                    ambulancias_para_remover.append(ambulancia)
+
+            escolha_de_ambulancia.append(ambulancias_para_remover[-1])
             
             aux_qtd_ambulancias -= 1
   
