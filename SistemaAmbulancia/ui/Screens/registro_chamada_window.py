@@ -445,8 +445,8 @@ class Registro_chamada_window(QMainWindow):
                 "cidade": self.input_cidade.text(),
                 "estado": "DF",
                 "cep": None,
-                "latitude": latitude,
-                "longitude": longitude
+                "latitude": float(latitude),
+                "longitude": float(longitude)
             }
 
             self.funcao_disparar_evento("Chamada_enviada", registro)
