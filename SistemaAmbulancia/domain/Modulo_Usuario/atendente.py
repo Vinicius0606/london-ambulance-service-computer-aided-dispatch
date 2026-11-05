@@ -18,7 +18,7 @@ class Atendente(Usuario):
 
         self.chamada_id_registrada = -1
 
-    def registrarChamada(self, info_chamada: list):
+    def registrarChamada(self, info_chamada: dict):
 
         endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
                             info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])

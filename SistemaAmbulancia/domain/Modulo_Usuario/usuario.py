@@ -9,10 +9,10 @@ class Usuario:
         self.senhaHash = senhaHash
         self.tipoUsuario = tipoUsuario
 
-    def autenticar():
+    def autenticar(self):
         pass
 
-    def alterar_senha():
+    def alterar_senha(self):
         pass
     
     
