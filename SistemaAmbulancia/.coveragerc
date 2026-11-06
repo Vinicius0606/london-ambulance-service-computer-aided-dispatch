@@ -1,0 +1,10 @@
+[run]
+source =
+    app
+    domain
+    events
+    services
+    ui
+
+[report]
+include_namespace_packages = True
