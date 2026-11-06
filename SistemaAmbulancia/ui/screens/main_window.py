@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QWidget, QHBoxLayout, 
 QFrame, QVBoxLayout, QScrollArea, QSizePolicy, QGraphicsDropShadowEffect, QPushButton)
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QColor, QIcon
 from datetime import datetime
 from services.Modulo_Mapa.mapa import Mapa
@@ -31,6 +31,10 @@ class Janela_principal(QMainWindow):
         self.scroll_lista_atendimentos = QScrollArea()
         self.div_lista_atendimentos = QFrame()
         self.layout_lista_atendimentos = QVBoxLayout()
+        self._tempos_dos_cards: dict[int, tuple[QLabel, datetime]] = {}
+        self._timer_atendimentos = QTimer(self)
+        self._timer_atendimentos.setInterval(1000)
+        self._timer_atendimentos.timeout.connect(self._atualizar_tempos_dos_cards)
 
         div_geral = QWidget()
         div_geral.setStyleSheet("background-color: #1d1e27;")
@@ -204,7 +208,7 @@ class Janela_principal(QMainWindow):
         shadow.setColor(QColor(0,0,0,140))
 
         card_div_nome_prioridade_endereco = self.__criar_card_div_nome_prioridade_endereco(nome_paciente, endereco, prioridade=prioridade)
-        card_div_tempo = self.__criar_card_div_tempo(horario_inicio)
+        card_div_tempo, label_tempo = self.__criar_card_div_tempo(horario_inicio)
         
         layout_card.addWidget(card_div_nome_prioridade_endereco)
         layout_card.addWidget(card_div_tempo)
@@ -213,6 +217,13 @@ class Janela_principal(QMainWindow):
         card.setGraphicsEffect(shadow)
 
         self.layout_lista_atendimentos.addWidget(card)
+
+        if horario_inicio is not None:
+            card_id = id(card)
+            self._tempos_dos_cards[card_id] = (label_tempo, horario_inicio)
+            card.destroyed.connect(lambda: self._tempos_dos_cards.pop(card_id, None))
+            if not self._timer_atendimentos.isActive():
+                self._timer_atendimentos.start()
 
         return card
 
@@ -268,14 +279,27 @@ class Janela_principal(QMainWindow):
 
         return div
     
-    def __criar_card_div_tempo(self, horario_recebido_da_chamada: datetime | None):
-        tempo_texto = "Horário indisponível"
-        if horario_recebido_da_chamada is not None:
-            segundos = (datetime.now() - horario_recebido_da_chamada).total_seconds()
-            if segundos < 60:
-                tempo_texto = f"{int(segundos)} segundo(s) atrás >"
-            else:
-                tempo_texto = f"{int(segundos / 60)} minuto(s) atrás >"
+    def _atualizar_tempos_dos_cards(self):
+        if not self._tempos_dos_cards:
+            self._timer_atendimentos.stop()
+            return
+
+        agora = datetime.now()
+        for label, horario_inicio in self._tempos_dos_cards.values():
+            label.setText(self._formatar_tempo_decorrido(horario_inicio, agora))
+
+    @staticmethod
+    def _formatar_tempo_decorrido(horario_inicio: datetime | None, agora: datetime) -> str:
+        if horario_inicio is None:
+            return "Horário indisponível"
+
+        segundos = (agora - horario_inicio).total_seconds()
+        if segundos < 60:
+            return f"{int(segundos)} segundo(s) atrás >"
+        return f"{int(segundos / 60)} minuto(s) atrás >"
+
+    def __criar_card_div_tempo(self, horario_inicio: datetime | None):
+        tempo_texto = self._formatar_tempo_decorrido(horario_inicio, datetime.now())
 
         div = QWidget()
         
@@ -294,7 +318,7 @@ class Janela_principal(QMainWindow):
 
         div.setLayout(layout)
 
-        return div
+        return div, label_tempo
     
     def __criar_div_mapa_botao_registrar(self):
         
