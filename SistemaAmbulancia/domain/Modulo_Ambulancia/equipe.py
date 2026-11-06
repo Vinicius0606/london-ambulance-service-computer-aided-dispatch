@@ -7,8 +7,8 @@ class Equipe:
         self.nome_equipe = nome_equipe
         self.socorristas = []
 
-    def adicionar_socorrista(socorrista: Socorrista):
+    def adicionar_socorrista(self, socorrista: Socorrista):
         pass
 
-    def remover_socorrista():
+    def remover_socorrista(self):
         pass

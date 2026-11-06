@@ -6,8 +6,8 @@ class Administrador(Usuario):
     def __init__(self, id: int, nome: str, email: str, senhaHash: str, tipoUsuario: TipoUsuario):
         super().__init__(id, nome, email, senhaHash, tipoUsuario)
 
-    def cadastrar_usuario():
+    def cadastrar_usuario(self):
         pass
 
-    def remover_usuario():
+    def remover_usuario(self):
         pass
