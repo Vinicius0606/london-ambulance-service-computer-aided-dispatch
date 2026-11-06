@@ -7,6 +7,7 @@ from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Triagem.triagem import Triagem
 from domain.Modulo_Triagem.IATriagem import IATriagem
 from domain.Modulo_Chamada.chamada import Chamada
+from domain.Modulo_Chamada.status import Status
 from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Usuario.atendente import Atendente
 from app.simulacao import Simulacao
@@ -31,11 +32,10 @@ class Sistema_principal:
 
         self.atendente = Atendente(1, "a", "asdas", "asdasd", "Atendente", self.gerenciador_eventos)
 
-        self.chamadas:list[Chamada] = self.banco_de_dados.retornar_chamadas()
-        
-        for index, chamada in enumerate(self.chamadas):
-
-            if(chamada.status == "Encerrado"): self.chamadas.pop(index)
+        self.chamadas: list[Chamada] = [
+            chamada for chamada in self.banco_de_dados.retornar_chamadas()
+            if chamada.status != Status.FINALIZADO.value
+        ]
 
         self.triagens_esperando_confirmacao = []
 
@@ -62,8 +62,6 @@ class Sistema_principal:
         self.id_triagem -= 1
 
         self.triagens_esperando_confirmacao.append([triagem, chamada])
-
-        self.chamadas.append(chamada)
 
         self.chamadas.insert(0, chamada)
 
