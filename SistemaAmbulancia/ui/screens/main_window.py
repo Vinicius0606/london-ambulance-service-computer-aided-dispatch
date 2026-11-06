@@ -182,7 +182,7 @@ class Janela_principal(QMainWindow):
 
         return scroll
 
-    def adicionar_card_atendimento(self, nome_paciente: str, prioridade: int, endereco: str, horario_inicio: datetime):
+    def adicionar_card_atendimento(self, nome_paciente: str, prioridade: int, endereco: str, horario_inicio: datetime | None):
 
         card = QWidget()
         card.setFixedHeight(self.scroll_lista_atendimentos.height() * 0.25)
@@ -306,23 +306,14 @@ class Janela_principal(QMainWindow):
 
         return div
     
-    def __criar_card_div_tempo(self, horario_recebido_da_chamada: datetime):
-
-        tempo_atual = datetime.now()
-
-        tempo_total_desde_chamada_recebida = tempo_atual - horario_recebido_da_chamada
-        
-        tempo_texto = ""
-
-        if(tempo_total_desde_chamada_recebida.total_seconds() < 60):
-            
-            tempo_texto = f"{(int)(tempo_total_desde_chamada_recebida.total_seconds())} segundo(s) atrás >"
-        
-        else:
-            
-            minutos = (int)(tempo_total_desde_chamada_recebida.total_seconds() / 60)
-
-            tempo_texto = f"{minutos} minuto(s) atrás >"
+    def __criar_card_div_tempo(self, horario_recebido_da_chamada: datetime | None):
+        tempo_texto = "Horário indisponível"
+        if horario_recebido_da_chamada is not None:
+            segundos = (datetime.now() - horario_recebido_da_chamada).total_seconds()
+            if segundos < 60:
+                tempo_texto = f"{int(segundos)} segundo(s) atrás >"
+            else:
+                tempo_texto = f"{int(segundos / 60)} minuto(s) atrás >"
 
         div = QWidget()
         

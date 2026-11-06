@@ -41,7 +41,12 @@ class Sistema_principal:
         self.triagens_esperando_confirmacao = []
 
         self.ambulancias = self.banco_de_dados.retornar_ambulancias()
-        self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos()
+        self.atendimentos_andamento = self.banco_de_dados.retornar_atendimentos(
+            self.chamadas, self.ambulancias,
+        )
+        for atendimento in self.atendimentos_andamento:
+            for despacho in atendimento.despachos:
+                self.simulacao.retomar_despacho(despacho)
         
         self.tipo_escolha_ambulancia = Escolher_ambulancia_hipotenusa()
         self.tipo_definir_prioridade = Definir_prioridade_pontuacao()

@@ -3,7 +3,8 @@ from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from domain.Modulo_Chamada.chamada import Chamada
 from domain.Modulo_Chamada.endereco import Endereco
 from domain.Modulo_Ambulancia.atendimento import Atendimento
-from datetime import datetime
+from domain.Modulo_Ambulancia.despacho import Despacho
+from domain.Modulo_Chamada.status import Status
 from events.gerenciador_eventos import Gerenciador_eventos
 
 class Conexao_BD:
@@ -82,56 +83,55 @@ class Conexao_BD:
 
         return chamadas_lista
     
-    def retornar_atendimentos(self):
+    def retornar_atendimentos(self, chamadas: list[Chamada], ambulancias: list[Ambulancia]):
+        chamadas_por_id = {chamada.id: chamada for chamada in chamadas}
+        ambulancias_por_id = {ambulancia.id: ambulancia for ambulancia in ambulancias}
 
-        cursor = self.cursor
+        sql = """
+            SELECT a.ID_atendimento, a.ID_chamada, a.qtd_ambulancias, a.data_hora_inicio,
+                   aa.ID_atendimento_ambulancia, aa.ID_ambulancia, aa.data_hora_envio,
+                   aa.data_hora_chegada, aa.status, aa.observacoes
+            FROM atendimento a
+            INNER JOIN chamada c ON c.ID_chamada = a.ID_chamada
+            LEFT JOIN atendimento_ambulancia aa ON aa.ID_atendimento = a.ID_atendimento
+            WHERE a.data_hora_finalizacao IS NULL
+              AND (c.status IS NULL OR c.status <> %s)
+            ORDER BY a.ID_atendimento, aa.ID_atendimento_ambulancia
+        """
+        self.cursor.execute(sql, (Status.FINALIZADO.value,))
 
-        ambulancias = self.retornar_ambulancias()
-        chamadas = self.retornar_chamadas()
-        
-        sql = """SELECT a.ID_atendimento, c.ID_chamada, a.qtd_ambulancias, a.data_hora_inicio 
-                FROM atendimento a 
-                LEFT JOIN chamada c ON a.ID_chamada = c.ID_chamada
-                WHERE c.status != 'Finalizado';"""
-        
-        cursor.execute(sql)
+        atendimentos = {}
+        for (
+            id_atendimento, id_chamada, quantidade, hora_inicio, id_despacho,
+            id_ambulancia, hora_envio, hora_chegada, status, observacoes,
+        ) in self.cursor.fetchall():
+            chamada = chamadas_por_id.get(id_chamada)
+            if chamada is None:
+                continue
 
-        atendimentos_resultado = cursor.fetchall()
+            if id_atendimento not in atendimentos:
+                atendimentos[id_atendimento] = Atendimento(
+                    id_atendimento, chamada, quantidade, [], self.gerenciador_eventos,
+                    hora_inicio=hora_inicio, veio_do_banco_de_dados=True,
+                )
 
-        sql = """SELECT a.ID_atendimento, aa.ID_ambulancia 
-                FROM atendimento_ambulancia aa
-                LEFT JOIN atendimento a ON aa.ID_atendimento = a.ID_atendimento
-                LEFT JOIN ambulancia c ON aa.ID_ambulancia = c.ID_ambulancia"""
-        
-        cursor.execute(sql)
+            ambulancia = ambulancias_por_id.get(id_ambulancia)
+            if id_despacho is None or ambulancia is None:
+                continue
 
-        atendimentos_ambulancias_id = cursor.fetchall()
+            atendimento = atendimentos[id_atendimento]
+            despacho = Despacho(
+                id_despacho, chamada, ambulancia, self.gerenciador_eventos,
+                observacoes=observacoes, veio_do_banco_de_dados=True,
+                id_atendimento=id_atendimento, hora_inicio=hora_envio,
+                hora_chegada=hora_chegada, status=status,
+            )
+            atendimento.despachos.append(despacho)
+            if ambulancia not in atendimento.ambulancias_alocadas:
+                atendimento.ambulancias_alocadas.append(ambulancia)
 
-        if len(atendimentos_ambulancias_id) == 0: return []
-        
-        lista_atendimentos: list[Atendimento] = []
+        return list(atendimentos.values())
 
-        for atendimento in atendimentos_resultado:
-            
-            chamada_do_atendimento = next((chamada for chamada in chamadas if chamada.id == atendimento[1]), None)
-            
-            id_ambulancias_do_atendimento = [next(id[1] for id in atendimentos_ambulancias_id if id[0] == atendimento[0])]
-
-            ambulancias_do_atendimento = list(
-                ambulancia for ambulancia in ambulancias if ambulancia.id in id_ambulancias_do_atendimento)
-
-            if chamada_do_atendimento == None: continue
-
-            atendimento_objeto = Atendimento(atendimento[0], chamada_do_atendimento, 
-                                             atendimento[2], ambulancias_do_atendimento , self.gerenciador_eventos,
-                                             atendimento[3] if atendimento[3] != None else datetime.now(), veio_do_banco_de_dados=True)
-
-            atendimento_objeto.criar_despachos()
-
-            lista_atendimentos.append(atendimento_objeto)
-
-        return lista_atendimentos
-    
     def update(self, novos_valores: dict):
 
         cursor = self.cursor

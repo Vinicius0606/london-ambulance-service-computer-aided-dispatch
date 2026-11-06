@@ -5,6 +5,7 @@ from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Chamada.chamada import Chamada
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Ambulancia.despacho import Despacho
+from domain.Modulo_Ambulancia.status import Status as StatusDespacho
 
 class Mapa:
 
@@ -50,20 +51,10 @@ class Mapa:
                 )
 
         for atendimento in self.atendimentos:
+            for despacho in atendimento.despachos:
+                if despacho.status in (StatusDespacho.EMTRANSITO.value, StatusDespacho.RETORNANDO.value):
+                    self.adicionar_rotas(despacho)
 
-            if len(atendimento.ambulancias_alocadas) == 0: continue
-
-            for ambulancia in atendimento.ambulancias_alocadas:
-
-                self.mapa_web.page().runJavaScript(
-                    f"""adicionar_rota_ambulancia({ambulancia.id}, 
-                    {atendimento.chamada.endereco.latitude}, {atendimento.chamada.endereco.longitude})"""
-                )
-
-                self.mapa_web.page().runJavaScript(
-                    f"""atualizar_status_ambulancia({ambulancia.id}, 'Atendendo')"""
-                )
-        
         self.gerenciador_eventos.emitir_evento("Mapa_carregado")
 
     def adicionar_chamada(self, chamada):
