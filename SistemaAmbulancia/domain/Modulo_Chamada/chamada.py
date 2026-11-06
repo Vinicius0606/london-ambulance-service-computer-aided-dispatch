@@ -1,7 +1,7 @@
 from datetime import datetime
 from .endereco import Endereco
 from .status import Status
-from .prioridade import Prioridade
+from .prioridade import Prioridade, normalizar_prioridade
 from events.gerenciador_eventos import Gerenciador_eventos
 
 class Chamada:
@@ -16,7 +16,7 @@ class Chamada:
         self.endereco = endereco
         self.descricao = descricao
         self.hora_chamada = data_hora if data_hora is not None else datetime.now()
-        self.prioridade: str = prioridade
+        self.prioridade = prioridade
         self.status: str = status
         self.veio_do_banco_de_dados = veio_do_banco_de_dados
 
@@ -63,25 +63,19 @@ class Chamada:
 
         self.id = id
 
-    def atualizar_dados(self, prioridade: Prioridade | None, status: Status | None):
+    def atualizar_dados(self, prioridade: Prioridade | str | int | None, status: Status | None):
 
         dict_chamada_atualizar_dados = {
             "tabela": "Chamada",
             "ID": self.id
         }
 
-        if prioridade:
-            
-            self.prioridade = prioridade
-
-            prioridade_int = 0
-
-            if self.prioridade == "Transporte": prioridade_int = 1
-            elif self.prioridade == "Moderada": prioridade_int = 2
-            elif self.prioridade == "Alta": prioridade_int = 3
-            else: prioridade_int = 4
-
-            dict_chamada_atualizar_dados["prioridade"] = prioridade_int
+        if prioridade is not None:
+            nivel = normalizar_prioridade(prioridade)
+            if nivel is None:
+                raise ValueError("Informe uma prioridade de 1 a 4.")
+            self.prioridade = nivel.value
+            dict_chamada_atualizar_dados["prioridade"] = nivel.codigo
 
         if status: 
             

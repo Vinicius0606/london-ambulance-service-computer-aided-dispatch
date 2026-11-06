@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSize
 from typing import Callable
 from domain.Modulo_Chamada import autocomplete as ac
+from domain.Modulo_Chamada.endereco import normalizar_coordenadas
 
 class Registro_chamada_window(QMainWindow):
     
@@ -324,9 +325,13 @@ class Registro_chamada_window(QMainWindow):
     def preencher_endereco(self):
         valores = ac.buscar_por_cep(self.input_CEP.text())
         if valores:
-            self.input_logradouro.setText(valores.get("logradouro", ""))
-            self.input_bairro.setText(valores.get("bairro", ""))
-            self.input_cidade.setText(valores.get("cidade", ""))
+            for campo, chave in (
+                (self.input_logradouro, "logradouro"),
+                (self.input_bairro, "bairro"),
+                (self.input_cidade, "cidade"),
+            ):
+                if valores.get(chave):
+                    campo.setText(valores[chave])
 
     def validar_campos(self, campos_obrigatorios):
         
@@ -377,81 +382,37 @@ class Registro_chamada_window(QMainWindow):
             self.sinalizar_campos_faltantes(campos_obrigatorios)
             return
 
-        registro = {}
+        endereco = ac.buscar_por_cep(self.input_CEP.text()) or {}
+        logradouro = endereco.get("logradouro") or self.input_logradouro.text().strip()
+        bairro = endereco.get("bairro") or self.input_bairro.text().strip()
+        cidade = endereco.get("cidade") or self.input_cidade.text().strip()
+        cep = endereco.get("cep") or None
 
-        endereco = ac.buscar_por_cep(self.input_CEP.text())
-
-        nome = None
-        numero = None
-        complemento = None
-
-        if self.input_nome.text() != "": nome = self.input_nome.text()
-        if self.input_numero.text() != "": numero = self.input_numero.text()
-        if self.input_complemento.text() != "": complemento = self.input_complemento.text()
-
-        if endereco != None:
-
-            latitude = endereco["latitude"]
-            longitude = endereco["longitude"]
-
-            if latitude is None and longitude is None:
-
-                latitude, longitude = ac.buscar_por_endereco(
-                    endereco.get("logradouro"),
-                    endereco.get("bairro"),
-                    endereco.get("cidade"),
-                    "DF",
-                    endereco.get("cep")
-                )
-
-            registro = {
-
-                "nome": nome,
-                "descricao": self.input_descricao.text(),
-                "logradouro": endereco.get("logradouro"),
-                "numero": numero,
-                "complemento": complemento,
-                "bairro": endereco.get("bairro"),
-                "cidade": endereco.get("cidade"),
-                "estado": "DF",
-                "cep": endereco.get("cep"),
-                "latitude": latitude,
-                "longitude": longitude
-            }
-            
-            self.funcao_disparar_evento("Chamada_enviada", registro)
-
-        elif (self.input_descricao.text() != "" and 
-            self.input_logradouro.text() != "" and
-            self.input_bairro.text() != "" and
-            self.input_cidade.text() != ""):
-
-         
-            latitude, longitude = ac.buscar_por_endereco(
-                self.input_logradouro.text(),
-                self.input_bairro.text(),
-                self.input_cidade.text(),
-                "DF"
+        coordenadas = normalizar_coordenadas(endereco.get("latitude"), endereco.get("longitude"))
+        if coordenadas is None:
+            coordenadas = normalizar_coordenadas(
+                *ac.buscar_por_endereco(logradouro, bairro, cidade, "DF", cep or "")
             )
 
-            registro = {
-
-                "nome": nome,
-                "descricao": self.input_descricao.text(),
-                "logradouro": self.input_logradouro.text(),
-                "numero": numero,
-                "complemento": complemento,
-                "bairro": self.input_bairro.text(),
-                "cidade": self.input_cidade.text(),
-                "estado": "DF",
-                "cep": None,
-                "latitude": float(latitude),
-                "longitude": float(longitude)
-            }
-
-            self.funcao_disparar_evento("Chamada_enviada", registro)
-
-        else:
-
-            print("Dados incompletos")
+        if coordenadas is None:
+            QMessageBox.warning(
+                self, "Endereço sem coordenadas válidas",
+                "Confira os dados do endereço e tente localizar a ocorrência novamente.",
+            )
             return
+
+        latitude, longitude = coordenadas
+        registro = {
+            "nome": self.input_nome.text() or None,
+            "descricao": self.input_descricao.text(),
+            "logradouro": logradouro,
+            "numero": self.input_numero.text() or None,
+            "complemento": self.input_complemento.text() or None,
+            "bairro": bairro,
+            "cidade": cidade,
+            "estado": "DF",
+            "cep": cep,
+            "latitude": latitude,
+            "longitude": longitude,
+        }
+        self.funcao_disparar_evento("Chamada_enviada", registro)

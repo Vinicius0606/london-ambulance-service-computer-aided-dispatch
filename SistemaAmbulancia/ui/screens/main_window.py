@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QIcon
 from datetime import datetime
 from services.Modulo_Mapa.mapa import Mapa
+from domain.Modulo_Chamada.prioridade import Prioridade, normalizar_prioridade
 from ui.screens.registro_chamada_window import Registro_chamada_window
 from typing import Callable
 import copy
@@ -228,59 +229,20 @@ class Janela_principal(QMainWindow):
             font-size: 16px;
         """)
 
-        prioridade_texto = ""
-        cor_texto = ""
-
-        if status == "Pendente": cor_texto = "rgba(220, 53, 69"
-        
-        elif status == "Em Triagem": cor_texto = "rgba(255, 193, 7"
-
-        if isinstance(prioridade, tuple): prioridade = prioridade[0]
-
-        if prioridade != None and isinstance(prioridade, str):
-
-            if prioridade == "Transporte":
-                
-                prioridade_texto = "Baixa Prioridade"
-                cor_texto = "rgba(0, 122, 255"
-
-            elif prioridade == "Moderada":
-
-                prioridade_texto = "Media Prioridade"
-                cor_texto = "rgba(255, 193, 7"
-        
-            elif prioridade == "Alta":
-
-                prioridade_texto = "Alta Prioridade"
-                cor_texto = "rgba(255, 140, 0"
-        
-            elif prioridade == "Extrema":
-
-                prioridade_texto = "Extrema Prioridade"
-                cor_texto = "rgba(220, 53, 69"
-
-        if prioridade != None and not isinstance(prioridade, str):
-            if prioridade < 5:
-                
-                prioridade_texto = "Baixa Prioridade"
-                cor_texto = "rgba(0, 122, 255"
-
-            elif prioridade < 15: 
-                
-                prioridade_texto = "Media Prioridade"
-                cor_texto = "rgba(255, 193, 7"
-
-            elif prioridade < 25:
-
-                prioridade_texto = "Alta Prioridade"
-                cor_texto = "rgba(255, 140, 0"
-
-            else: 
-
-                prioridade_texto = "Extrema Prioridade"
-                cor_texto = "rgba(220, 53, 69"
-
-        label_status = QLabel(status if status else prioridade_texto)
+        nivel = normalizar_prioridade(prioridade)
+        cores_prioridade = {
+            Prioridade.TRANSPORTE: "rgba(0, 122, 255",
+            Prioridade.MODERADA: "rgba(255, 193, 7",
+            Prioridade.ALTA: "rgba(255, 140, 0",
+            Prioridade.EXTREMA: "rgba(220, 53, 69",
+        }
+        cores_status = {
+            "Pendente": "rgba(220, 53, 69",
+            "Em Triagem": "rgba(255, 193, 7",
+        }
+        texto = status or (nivel.value if nivel is not None else "Prioridade não definida")
+        cor_texto = cores_status.get(status, cores_prioridade.get(nivel, "rgba(166, 166, 166"))
+        label_status = QLabel(texto)
 
         label_status.setStyleSheet(f"""
             color: {cor_texto + ", 1)"};

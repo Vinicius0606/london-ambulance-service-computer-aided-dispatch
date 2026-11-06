@@ -1,12 +1,14 @@
 from .interface_escolha_ambulancia import Interface_escolha_ambulancia
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
+from domain.Modulo_Chamada.endereco import normalizar_coordenadas
 import requests
 
 class Escolher_ambulancia_OSMR(Interface_escolha_ambulancia):
 
     def escolher_ambulancias(self, ambulancias: list[Ambulancia], qtd_vitimas: int,
                              latitude_chamado: float, longitude_chamado: float):
-        if qtd_vitimas <= 0:
+        coordenadas_chamada = normalizar_coordenadas(latitude_chamado, longitude_chamado)
+        if qtd_vitimas <= 0 or coordenadas_chamada is None:
             return {"ambulancias": [], "qtd_ambulancias": 0}
 
         limite = min(qtd_vitimas, 4)
@@ -17,12 +19,12 @@ class Escolher_ambulancia_OSMR(Interface_escolha_ambulancia):
             if ambulancia.status != "Disponivel" or ambulancia.id in ids_consultados:
                 continue
 
+            coordenadas = normalizar_coordenadas(ambulancia.latitudeAtual, ambulancia.longitudeAtual)
+            if coordenadas is None:
+                continue
+
             ids_consultados.add(ambulancia.id)
-            rota = self.buscar_ambulancias_proximas(
-                (ambulancia.latitudeAtual, ambulancia.longitudeAtual),
-                latitude_chamado,
-                longitude_chamado,
-            )
+            rota = self.buscar_ambulancias_proximas(coordenadas, *coordenadas_chamada)
 
             if rota is not None and rota["distancia_km"] < 30:
                 candidatas.append((rota["distancia_km"], ambulancia))
