@@ -1,6 +1,8 @@
 from ..Modulo_Chamada.chamada import Chamada
+from ..Modulo_Chamada.status import Status as StatusChamada
 from ..Modulo_Ambulancia.ambulancia import Ambulancia
 from ..Modulo_Ambulancia.despacho import Despacho
+from .status import Status as StatusDespacho
 from datetime import datetime
 from events.gerenciador_eventos import Gerenciador_eventos
 
@@ -56,36 +58,33 @@ class Atendimento:
 
 
     def retirar_despacho(self, despacho: Despacho):
+        if self.hora_finalizacao is not None or despacho not in self.despachos:
+            return
 
-        if despacho.chamada.id != self.chamada.id: return
-
-        for index, despacho_lista_item in enumerate(self.despachos):
-
-            if despacho_lista_item.ambulancia.id == despacho.ambulancia.id:
-
-                self.despachos.pop(index)
-
-                despacho.ambulancia.atualizar_status("Disponivel")
-
-                break
-        
-        if len(self.despachos) == 0:
-
+        despacho.finalizar_despacho()
+        if len(self.despachos) == 1:
             self.finalizar_atendimento()
-
+        else:
+            self.despachos.remove(despacho)
 
     def finalizar_atendimento(self):
-        
-        self.chamada.atualizar_dados(prioridade=None, status="Finalizado")
+        if self.hora_finalizacao is not None or not self.despachos:
+            return
+        if any(despacho.status != StatusDespacho.FINALIZADO.value for despacho in self.despachos):
+            return
 
-        self.hora_finalizacao = datetime.now()
-
-        self.gerenciador_eventos.emitir_evento("Atendimento_finalizado", self)
-
-        dict_atendimento_atualizar_dados = {
+        hora_finalizacao = datetime.now()
+        dados_atendimento = {
             "tabela": "Atendimento",
             "ID": self.id,
-            "data_hora_finalizacao": self.hora_finalizacao
+            "data_hora_finalizacao": hora_finalizacao,
         }
+        self.gerenciador_eventos.emitir_evento("Atualizar_atendimento_Banco_dados", dados_atendimento)
+        self.chamada.atualizar_dados(prioridade=None, status=StatusChamada.FINALIZADO.value)
 
-        self.gerenciador_eventos.emitir_evento("Atualizar_atendimento_Banco_dados", dict_atendimento_atualizar_dados)
+        self.hora_finalizacao = hora_finalizacao
+        self.despachos.clear()
+        self.gerenciador_eventos.remover_ouvinte_para_evento(
+            "Ambulancia_chegou_no_hospital", self.retirar_despacho,
+        )
+        self.gerenciador_eventos.emitir_evento("Atendimento_finalizado", self)
