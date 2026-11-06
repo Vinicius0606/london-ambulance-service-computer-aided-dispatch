@@ -4,8 +4,8 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QMovie, QIntValidator
 from typing import Callable
 from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem
+from domain.Modulo_Triagem.validacao_confirmacao import ler_campos_confirmacao
 from domain.Modulo_Chamada.prioridade import Prioridade, normalizar_prioridade
-import re
 
 class Carregar_triagem_window(QMainWindow):
 
@@ -194,20 +194,9 @@ class Carregar_triagem_window(QMainWindow):
                                  placas_das_ambulancias: str):
         titulo = "Confirmação de triagem"
         try:
-            quantidade = int(quantidade_digitada)
-        except ValueError:
-            quantidade = 0
-
-        if quantidade <= 0:
-            QMessageBox.warning(self, titulo, "Digite uma quantidade inteira maior que zero.")
-            return
-
-        placas = [placa for placa in re.split(r"[\s,;|]+", placas_das_ambulancias) if placa]
-        if not prioridade.strip() or not placas:
-            QMessageBox.warning(self, titulo, "Preencha a prioridade e as placas das ambulâncias.")
-            return
-
-        try:
+            quantidade, placas = ler_campos_confirmacao(
+                prioridade, quantidade_digitada, placas_das_ambulancias,
+            )
             ambulancias = self.funcao_verificar_ambulancias(placas, quantidade)
             dados_triagem = {
                 "id": self.triagem_id,

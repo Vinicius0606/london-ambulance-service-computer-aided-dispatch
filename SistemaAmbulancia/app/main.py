@@ -4,12 +4,11 @@ from services.Modulo_Mapa.mapa import Mapa
 from services.Modulo_Banco_Dados.conexao_BD import Conexao_BD
 from ui.gerenciador_telas import Gerenciador_telas
 from events.gerenciador_eventos import Gerenciador_eventos
-from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem, Triagem
+from domain.Modulo_Triagem.triagem import Triagem
+from domain.Modulo_Triagem.validacao_confirmacao import validar_confirmacao
 from domain.Modulo_Triagem.IATriagem import IATriagem
 from domain.Modulo_Chamada.chamada import Chamada
-from domain.Modulo_Chamada.prioridade import Prioridade
 from domain.Modulo_Chamada.status import Status
-from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Usuario.atendente import Atendente
 from app.simulacao import Simulacao
@@ -69,46 +68,12 @@ class Sistema_principal:
         triagem.iniciar()
 
     def criar_atendimento(self, dados_triagem):
-        triagem_id = dados_triagem.get("id")
-        chamada = next(
-            (chamada for triagem, chamada in self.triagens_esperando_confirmacao
-             if triagem.id == triagem_id and triagem.qtd_ambulancias is not None),
-            None,
+        chamada, prioridade, ambulancias_alocadas = validar_confirmacao(
+            dados_triagem, self.triagens_esperando_confirmacao, self.chamadas, self.ambulancias,
         )
-        if chamada is None or chamada not in self.chamadas or chamada.status != Status.PENDENTE.value:
-            raise ErroConfirmacaoTriagem("A chamada precisa estar pendente para ser alocada.")
-
-        prioridade = dados_triagem.get("prioridade")
-        if prioridade not in (opcao.value for opcao in Prioridade):
-            raise ErroConfirmacaoTriagem("Selecione uma prioridade válida.")
-
-        quantidade = dados_triagem.get("qtd_ambulancias")
-        ambulancias = dados_triagem.get("ambulancias")
-        if (
-            type(quantidade) is not int or quantidade <= 0
-            or not isinstance(ambulancias, list) or len(ambulancias) != quantidade
-        ):
-            raise ErroConfirmacaoTriagem("A quantidade deve corresponder às ambulâncias selecionadas.")
-        if not all(isinstance(ambulancia, Ambulancia) for ambulancia in ambulancias):
-            raise ErroConfirmacaoTriagem("Selecione ambulâncias válidas.")
-
-        ids_selecionados = {ambulancia.id for ambulancia in ambulancias}
-        if len(ids_selecionados) != quantidade:
-            raise ErroConfirmacaoTriagem("Selecione cada ambulância uma única vez.")
-
-        disponiveis = {
-            ambulancia.id: ambulancia for ambulancia in self.ambulancias
-            if ambulancia.status == "Disponivel"
-        }
-        if quantidade > len(disponiveis):
-            raise ErroConfirmacaoTriagem("A frota disponível é insuficiente para essa quantidade.")
-        if not ids_selecionados.issubset(disponiveis):
-            raise ErroConfirmacaoTriagem("Uma ou mais ambulâncias selecionadas estão indisponíveis.")
-
-        ambulancias_alocadas = [disponiveis[ambulancia.id] for ambulancia in ambulancias]
         chamada.atualizar_dados(prioridade, Status.ALOCADO.value)
         atendimento = Atendimento(
-            self.id_atendimento, chamada, quantidade,
+            self.id_atendimento, chamada, len(ambulancias_alocadas),
             ambulancias_alocadas, self.gerenciador_eventos,
         )
         self.id_atendimento -= 1
@@ -133,6 +98,6 @@ class Sistema_principal:
 
         sys.exit(self.app.exec())
     
-sistema = Sistema_principal()
-
-sistema.iniciar_telas()
+if __name__ == "__main__":
+    sistema = Sistema_principal()
+    sistema.iniciar_telas()
