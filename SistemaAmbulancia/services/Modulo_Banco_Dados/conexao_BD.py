@@ -1,4 +1,8 @@
+from os import getenv
+from pathlib import Path
+
 import pymysql
+from dotenv import dotenv_values
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from domain.Modulo_Chamada.chamada import Chamada
 from domain.Modulo_Chamada.endereco import Endereco
@@ -11,12 +15,34 @@ class Conexao_BD:
 
     def __init__(self, gerenciador_eventos: Gerenciador_eventos):
 
+        caminho_env = Path(__file__).resolve().parents[2] / ".env"
+        configuracao_local = dotenv_values(caminho_env, encoding="utf-8-sig", interpolate=False)
+        nomes = ("DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD")
+        parametros = {nome: getenv(nome, configuracao_local.get(nome)) for nome in nomes}
+
+        ausentes = [nome for nome, valor in parametros.items() if not valor or not valor.strip()]
+        if ausentes:
+            raise RuntimeError(
+                f"Configure {', '.join(ausentes)} no ambiente ou em SistemaAmbulancia/.env. "
+                "Use .env.example como referência."
+            )
+
+        try:
+            porta = int(parametros["DB_PORT"])
+        except ValueError:
+            porta = 0
+        if not 1 <= porta <= 65535:
+            raise RuntimeError(
+                "DB_PORT deve ser uma porta TCP entre 1 e 65535. "
+                "Corrija o valor no ambiente ou em SistemaAmbulancia/.env."
+            )
+
         self.conexao = pymysql.connect(
-            host="localhost",
-            user="root",
-            password="123",
-            database="sistema_ambulancia",
-            port=3306
+            host=parametros["DB_HOST"],
+            port=porta,
+            database=parametros["DB_NAME"],
+            user=parametros["DB_USER"],
+            password=parametros["DB_PASSWORD"],
         )
 
         self.cursor = self.conexao.cursor()
