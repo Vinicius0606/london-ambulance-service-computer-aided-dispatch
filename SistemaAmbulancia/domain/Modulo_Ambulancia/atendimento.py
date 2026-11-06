@@ -8,12 +8,14 @@ from events.gerenciador_eventos import Gerenciador_eventos
 
 class Atendimento:
 
-    def __init__(self, id: int, chamada: Chamada, qtdAmbulancias: int, 
+    def __init__(self, id: int, chamada: Chamada, qtdAmbulancias: int | None,
                  ambulancias: list[Ambulancia], gerenciador_eventos: Gerenciador_eventos,
                  hora_inicio: datetime | None = None, veio_do_banco_de_dados: bool = False):
 
         self.id = id
-        self.hora_inicio = hora_inicio if hora_inicio is not None else datetime.now()
+        if hora_inicio is None and not veio_do_banco_de_dados:
+            hora_inicio = datetime.now()
+        self.hora_inicio = hora_inicio
         self.hora_finalizacao = None
         self.chamada = chamada
         self.qtd_ambulancias = qtdAmbulancias
@@ -25,10 +27,11 @@ class Atendimento:
 
         self.id_despacho = 0
 
-        self.gerenciador_eventos.emitir_evento("Atendimento_criado", self)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Ambulancia_chegou_no_hospital", self.retirar_despacho)
 
-        if not self.veio_do_banco_de_dados: self.organizar_dados_para_banco_dados()
+        if not self.veio_do_banco_de_dados:
+            self.gerenciador_eventos.emitir_evento("Atendimento_criado", self)
+            self.organizar_dados_para_banco_dados()
 
     def atualizar_ID(self, id: int):
 
@@ -62,10 +65,7 @@ class Atendimento:
             return
 
         despacho.finalizar_despacho()
-        if len(self.despachos) == 1:
-            self.finalizar_atendimento()
-        else:
-            self.despachos.remove(despacho)
+        self.finalizar_atendimento()
 
     def finalizar_atendimento(self):
         if self.hora_finalizacao is not None or not self.despachos:

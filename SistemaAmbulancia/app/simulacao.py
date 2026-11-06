@@ -18,6 +18,11 @@ class Simulacao:
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Mapa_carregado", self.__mapa_carregado)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Ambulancia_retornar_hospital", self.__calcular_movimento_ambulancia)
 
+    def retomar_despacho(self, despacho: Despacho):
+        if despacho.status in (Status.EMTRANSITO.value, Status.RETORNANDO.value):
+            despacho.ambulancia.atualizar_status("Atendendo")
+            self.__calcular_movimento_ambulancia(despacho)
+
     def __mapa_carregado(self):
         self.mapa_carregado += 1
         if self.mapa_carregado != 3:
