@@ -4,61 +4,60 @@ import requests
 
 class Escolher_ambulancia_OSMR(Interface_escolha_ambulancia):
 
-    def escolher_ambulancias(self, ambulancias: list[Ambulancia], qtd_vitimas: int, 
+    def escolher_ambulancias(self, ambulancias: list[Ambulancia], qtd_vitimas: int,
                              latitude_chamado: float, longitude_chamado: float):
-        
-        menor_distancia_pro_chamado: float = 30
+        if qtd_vitimas <= 0:
+            return {"ambulancias": [], "qtd_ambulancias": 0}
 
-        escolha_de_ambulancia = []
-        ambulancias_para_remover = []
+        limite = min(qtd_vitimas, 4)
+        candidatas = []
+        ids_consultados = set()
 
-        if qtd_vitimas < 4 :
-            qtd_ambulancias = qtd_vitimas
+        for ambulancia in ambulancias:
+            if ambulancia.status != "Disponivel" or ambulancia.id in ids_consultados:
+                continue
 
-        elif qtd_vitimas >= 4:
-            qtd_ambulancias = 4
+            ids_consultados.add(ambulancia.id)
+            rota = self.buscar_ambulancias_proximas(
+                (ambulancia.latitudeAtual, ambulancia.longitudeAtual),
+                latitude_chamado,
+                longitude_chamado,
+            )
 
-        aux_qtd_ambulancias = qtd_ambulancias
+            if rota is not None and rota["distancia_km"] < 30:
+                candidatas.append((rota["distancia_km"], ambulancia))
 
-        while aux_qtd_ambulancias > 0:
+        candidatas.sort(key=lambda candidata: candidata[0])
+        escolhidas = [ambulancia for _, ambulancia in candidatas[:limite]]
 
-            for ambulancia in self.ambulancias:
-
-                distancia = self.buscar_ambulancias_proximas([ambulancia.latitudeAtual, ambulancia.longitudeAtual])
-
-                if distancia["distancia_km"] < menor_distancia_pro_chamado and ambulancia not in escolha_de_ambulancia: 
-                    menor_distancia_pro_chamado = distancia["distancia_km"]
-                    ambulancias_para_remover.append(ambulancia)
-
-            escolha_de_ambulancia.append(ambulancias_para_remover[-1])
-            
-            aux_qtd_ambulancias -= 1
-  
-        return{
-            "ambulancias": escolha_de_ambulancia,
-            "qtd_ambulancias": qtd_ambulancias
+        return {
+            "ambulancias": escolhidas,
+            "qtd_ambulancias": len(escolhidas),
         }
-    
+
     def buscar_ambulancias_proximas(self, posicao_ambulancia, latitude_chamado, longitude_chamado):
-        
-        
         url = (
             f"https://router.project-osrm.org/route/v1/driving/"
-            f"{posicao_ambulancia[1]},{posicao_ambulancia[0]};{latitude_chamado},{longitude_chamado}"
+            f"{posicao_ambulancia[1]},{posicao_ambulancia[0]};{longitude_chamado},{latitude_chamado}"
             f"?overview=full&geometries=geojson"
         )
 
-        resposta = requests.get(url)
-        resposta.raise_for_status()
-
-        dados = resposta.json()
-
-        if not dados.get("routes"):
+        try:
+            resposta = requests.get(url, timeout=5)
+            resposta.raise_for_status()
+            dados = resposta.json()
+        except (requests.exceptions.RequestException, ValueError):
             return None
 
-        rota = dados["routes"][0]
+        rotas = dados.get("routes") if isinstance(dados, dict) else None
+        if not isinstance(rotas, list) or not rotas or not isinstance(rotas[0], dict):
+            return None
+
+        distancia = rotas[0].get("distance")
+        if type(distancia) not in (int, float) or not 0 <= distancia < float("inf"):
+            return None
 
         return {
-            "distancia_metros": rota["distance"],
-            "distancia_km": rota["distance"] / 1000,
+            "distancia_metros": distancia,
+            "distancia_km": distancia / 1000,
         }
