@@ -27,7 +27,6 @@ class Sistema_principal:
         self.simulacao = Simulacao(self.gerenciador_eventos)
 
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Chamada_registrada", self.chamada_registrada)
-        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_Thread_IA", self.comecar_thread_IA)
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_analisada", self.criar_atendimento)
 
         self.banco_de_dados = Conexao_BD(self.gerenciador_eventos)
@@ -52,10 +51,6 @@ class Sistema_principal:
         self.id_triagem = -1
         self.id_atendimento = -1
 
-    def comecar_thread_IA(self):
-
-        self.ia_triagem.start()
-
     def chamada_registrada(self, chamada: Chamada):
 
         triagem = Triagem(self.id_triagem, chamada.descricao, self.gerenciador_eventos, 
@@ -66,12 +61,13 @@ class Sistema_principal:
         self.triagens_esperando_confirmacao.append([triagem, chamada])
 
         self.chamadas.insert(0, chamada)
+        triagem.iniciar()
 
     def criar_atendimento(self, dados_triagem):
         triagem_id = dados_triagem.get("id")
         chamada = next(
             (chamada for triagem, chamada in self.triagens_esperando_confirmacao
-             if triagem.id == triagem_id),
+             if triagem.id == triagem_id and triagem.qtd_ambulancias is not None),
             None,
         )
         if chamada is None or chamada not in self.chamadas or chamada.status != Status.PENDENTE.value:

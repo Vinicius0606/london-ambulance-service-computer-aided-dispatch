@@ -1,56 +1,70 @@
+from collections import deque
 import json
+import logging
 import requests
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Qt, Slot
 from .tipos_escolher_ambulancia.interface_escolha_ambulancia import Interface_escolha_ambulancia
 from .tipos_definir_prioridade.interface_definir_prioridade import Interface_definir_prioridade
 from services.IA_Ollama.enviar_mensagem_IA import enviar_mensagem_IA
 
 class IATriagem(QThread):
-    triagem_pronta = Signal(dict)
 
-    def __init__(self, gerenciador_eventos: Gerenciador_eventos, ambulancias: list[Ambulancia], 
-                 tipo_escolher_ambulancia: Interface_escolha_ambulancia, tipo_definir_prioridade: Interface_definir_prioridade):
-        
+    def __init__(self, gerenciador_eventos: Gerenciador_eventos, ambulancias: list[Ambulancia],
+                 tipo_escolher_ambulancia: Interface_escolha_ambulancia,
+                 tipo_definir_prioridade: Interface_definir_prioridade):
         super().__init__()
-
-        self.triagem = None
-
-        self.ocorrencia = None
-
-        self.latitude_do_chamado = None
-
-        self.longitude_do_chamado = None
-
         self.gerenciador_eventos = gerenciador_eventos
-
         self.ambulancias = ambulancias
-
         self.tipo_escolher_ambulancia = tipo_escolher_ambulancia
         self.tipo_definir_prioridade = tipo_definir_prioridade
+        self.fila = deque()
+        self.solicitacao_atual = None
+        self.resultado = None
 
-        self.gerenciador_eventos.adicionar_ouvinte_para_evento("Triagem_iniciada", self.atualizar_ocorrencia)
-        self.triagem_pronta.connect(self.enviar_finilizacao_thread)
+        self.gerenciador_eventos.adicionar_ouvinte_para_evento(
+            "Triagem_iniciada", self.enfileirar_solicitacao,
+        )
+        self.finished.connect(self.finalizar_solicitacao, Qt.ConnectionType.QueuedConnection)
 
-    def enviar_finilizacao_thread(self, triagem_dict: dict):
+    def enfileirar_solicitacao(self, dados_da_ocorrencia):
+        self.fila.append(dados_da_ocorrencia.copy())
+        self.processar_proxima()
 
-        self.gerenciador_eventos.emitir_evento("Triagem_concluida", triagem_dict)
+    def processar_proxima(self):
+        if self.solicitacao_atual is not None or not self.fila:
+            return
 
-    def atualizar_ocorrencia(self, dados_da_ocorrencia):
-
-        self.ocorrencia = dados_da_ocorrencia["ocorrencia"]
-        self.latitude_do_chamado = dados_da_ocorrencia["latitude_do_chamado"]
-        self.longitude_do_chamado = dados_da_ocorrencia["longitude_do_chamado"]
-
-        self.gerenciador_eventos.emitir_evento("Triagem_Thread_IA")
+        self.solicitacao_atual = self.fila.popleft()
+        self.gerenciador_eventos.emitir_evento(
+            "Triagem_Thread_IA", {"triagem_id": self.solicitacao_atual["triagem_id"]},
+        )
+        self.start()
 
     def run(self):
+        solicitacao = self.solicitacao_atual
+        try:
+            self.resultado = self.extrair_ocorrencia(solicitacao)
+        except Exception:
+            logging.getLogger(__name__).exception("Falha no processamento da triagem.")
+            self.resultado = {
+                "triagem_id": solicitacao["triagem_id"],
+                "erro": "Não foi possível concluir a triagem desta chamada.",
+            }
 
-        self.extrair_ocorrencia(self.ocorrencia)
-        
+    @Slot()
+    def finalizar_solicitacao(self):
+        self.wait()
+        try:
+            self.gerenciador_eventos.emitir_evento("Triagem_concluida", self.resultado)
+        finally:
+            self.resultado = None
+            self.solicitacao_atual = None
+            self.processar_proxima()
 
-    def extrair_ocorrencia(self, mensagem):
+    def extrair_ocorrencia(self, solicitacao):
+        mensagem = solicitacao["ocorrencia"]
 
         prompt = f"""
         Extraia as informações da ocorrência e responda apenas em JSON.
@@ -115,18 +129,17 @@ class IATriagem(QThread):
         qtd_ambulancias_solicitada = ocorrencia["quantidade_vitimas"]
         ambulancia_info = self.tipo_escolher_ambulancia.escolher_ambulancias(
             self.ambulancias, qtd_ambulancias_solicitada,
-            self.latitude_do_chamado, self.longitude_do_chamado,
+            solicitacao["latitude_do_chamado"], solicitacao["longitude_do_chamado"],
         )
 
         qtd_ambulancias = ambulancia_info["qtd_ambulancias"]
 
         ambulancias = ambulancia_info["ambulancias"]
 
-        triagem_dict = {
+        return {
+            "triagem_id": solicitacao["triagem_id"],
             "prioridade": prioridade,
             "qtd_ambulancias": qtd_ambulancias,
             "qtd_ambulancias_solicitada": qtd_ambulancias_solicitada,
             "ambulancias": ambulancias
         }
-
-        self.triagem_pronta.emit(triagem_dict)

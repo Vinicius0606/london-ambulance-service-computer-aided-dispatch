@@ -1,4 +1,6 @@
 from datetime import datetime
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMessageBox
 from ui.screens.main_window import Janela_principal
 from ui.screens.mapa_window import Mapa_window
 from ui.screens.registro_chamada_window import Registro_chamada_window
@@ -25,6 +27,7 @@ class Gerenciador_telas:
         self.ambulancias = ambulancias
 
         self.carregar_triagem_window = None
+        self.janelas_confirmacao = {}
 
         self.cards_atendimento = []
 
@@ -69,33 +72,39 @@ class Gerenciador_telas:
 
         self.tela_ambulancia.showMaximized()
 
-    def abrir_tela_carregando_triagem(self):
-
+    def abrir_tela_carregando_triagem(self, dados):
         self.tela_registro.hide()
-
         self.tela_principal.showMaximized()
 
-        self.carregar_triagem_window = Carregar_triagem_window(carregando=True)
-
+        self.carregar_triagem_window = Carregar_triagem_window(
+            carregando=True, triagem_id=dados["triagem_id"],
+        )
         self.carregar_triagem_window.show()
-    
+
     def abrir_tela_confirmar_triagem(self, triagem: Triagem):
+        carregando = self.carregar_triagem_window
+        if carregando is not None and carregando.triagem_id == triagem.id:
+            carregando.close()
+            self.carregar_triagem_window = None
 
-        self.carregar_triagem_window.close()
+        if triagem.erro:
+            QMessageBox.warning(self.tela_principal, "Falha na triagem", triagem.erro)
+            return
 
-        placas_ambulancias = []
-
-        for ambulancia in triagem.ambulancias:
-
-            placas_ambulancias.append(ambulancia.placa)
-        
-        self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
-                        qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=placas_ambulancias, 
-                        funcao_verificar_ambulancias=self.analisar_ambulancias, 
-                        funcao_disparar_evento=self.disparar_evento, triagem_id=triagem.id,
-                        qtd_ambulancias_solicitada=triagem.qtd_ambulancias_solicitada)
-
-        self.confirmar_triagem_window.show()
+        janela = Carregar_triagem_window(
+            carregando=False, prioridade=triagem.prioridade,
+            qtd_ambulancias=triagem.qtd_ambulancias,
+            placas_ambulancias=[ambulancia.placa for ambulancia in triagem.ambulancias],
+            funcao_verificar_ambulancias=self.analisar_ambulancias,
+            funcao_disparar_evento=self.disparar_evento, triagem_id=triagem.id,
+            qtd_ambulancias_solicitada=triagem.qtd_ambulancias_solicitada,
+        )
+        self.janelas_confirmacao[triagem.id] = janela
+        janela.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        janela.destroyed.connect(
+            lambda _obj=None, id_triagem=triagem.id: self.janelas_confirmacao.pop(id_triagem, None)
+        )
+        janela.show()
 
     def disparar_evento(self, nome_evento: str, dados):
 
