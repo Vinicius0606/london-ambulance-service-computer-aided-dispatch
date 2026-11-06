@@ -8,10 +8,10 @@ class Atendimento:
 
     def __init__(self, id: int, chamada: Chamada, qtdAmbulancias: int, 
                  ambulancias: list[Ambulancia], gerenciador_eventos: Gerenciador_eventos,
-                 hora_inicio: datetime = datetime.now(), veio_do_banco_de_dados: bool = False):
+                 hora_inicio: datetime | None = None, veio_do_banco_de_dados: bool = False):
 
         self.id = id
-        self.hora_inicio = hora_inicio
+        self.hora_inicio = hora_inicio if hora_inicio is not None else datetime.now()
         self.hora_finalizacao = None
         self.chamada = chamada
         self.qtd_ambulancias = qtdAmbulancias

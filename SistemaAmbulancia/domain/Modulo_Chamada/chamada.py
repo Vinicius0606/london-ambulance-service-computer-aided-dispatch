@@ -7,7 +7,7 @@ from events.gerenciador_eventos import Gerenciador_eventos
 class Chamada:
 
     def __init__(self, endereco: Endereco, descricao: str, 
-                 gerenciador_eventos: Gerenciador_eventos, data_hora: datetime = datetime.now(), id: int = None, 
+                 gerenciador_eventos: Gerenciador_eventos, data_hora: datetime | None = None, id: int = None,
                  prioridade: Prioridade = None, nome_solicitante: str = None, status: str = Status.PENDENTE.value,
                  veio_do_banco_de_dados: bool = False):
         
@@ -15,7 +15,7 @@ class Chamada:
         self.nome_solicitante = nome_solicitante
         self.endereco = endereco
         self.descricao = descricao
-        self.hora_chamada = data_hora
+        self.hora_chamada = data_hora if data_hora is not None else datetime.now()
         self.prioridade: str = prioridade
         self.status: str = status
         self.veio_do_banco_de_dados = veio_do_banco_de_dados
