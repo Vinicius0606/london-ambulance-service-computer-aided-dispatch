@@ -63,15 +63,15 @@ class Despacho:
         self.gerenciador_eventos.emitir_evento("Atualizar_despacho_Banco_dados", dict_despacho_atualizar_dados)
 
     def finalizar_despacho(self):
-        
-        self.status = Status.FINALIZADO.value
+        if self.status == Status.FINALIZADO.value:
+            return
 
-        self.ambulancia.atualizar_status("Disponivel")
-
-        dict_despacho_atualizar_dados = {
+        dados_despacho = {
             "tabela": "Atendimento_Ambulancia",
             "ID": self.id,
-            "status": self.status,
+            "status": Status.FINALIZADO.value,
         }
+        self.gerenciador_eventos.emitir_evento("Atualizar_despacho_Banco_dados", dados_despacho)
 
-        self.gerenciador_eventos.emitir_evento("Atualizar_despacho_Banco_dados", dict_despacho_atualizar_dados)
+        self.status = Status.FINALIZADO.value
+        self.ambulancia.atualizar_status("Disponivel")

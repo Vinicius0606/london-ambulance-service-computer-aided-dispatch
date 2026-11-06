@@ -1,5 +1,6 @@
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Ambulancia.despacho import Despacho
+from domain.Modulo_Ambulancia.status import Status
 from PySide6.QtCore import QTimer
 import requests
 
@@ -18,92 +19,90 @@ class Simulacao:
         self.gerenciador_eventos.adicionar_ouvinte_para_evento("Ambulancia_retornar_hospital", self.__calcular_movimento_ambulancia)
 
     def __mapa_carregado(self):
-
-        
         self.mapa_carregado += 1
+        if self.mapa_carregado != 3:
+            return
 
-        if self.mapa_carregado != 3: return
-
-        for temporizador_funcao in self.temporizadores_funcao:
-
-            temporizador_funcao["timer"].start(100)
+        for movimento in self.temporizadores_funcao:
+            if movimento is not None:
+                movimento["timer"].start(100)
 
     def __calcular_movimento_ambulancia(self, despacho: Despacho):
+        if despacho.status == Status.EMTRANSITO.value:
+            destino = (despacho.chamada.endereco.longitude, despacho.chamada.endereco.latitude)
+        elif despacho.status == Status.RETORNANDO.value:
+            destino = (-47.911496, -15.834400)
+        else:
+            return
 
-        if despacho.status == "EmTransito":
-            
-            url = (
-                f"https://router.project-osrm.org/route/v1/driving/"
-                f"{despacho.ambulancia.longitudeAtual},{despacho.ambulancia.latitudeAtual};{despacho.chamada.endereco.longitude},{despacho.chamada.endereco.latitude}"
-                f"?overview=full&geometries=geojson"
-            )
+        if any(
+            movimento is not None and movimento["despacho"] is despacho
+            for movimento in self.temporizadores_funcao
+        ):
+            return
 
-        else: 
+        ambulancia = despacho.ambulancia
+        url = (
+            "https://router.project-osrm.org/route/v1/driving/"
+            f"{ambulancia.longitudeAtual},{ambulancia.latitudeAtual};{destino[0]},{destino[1]}"
+            "?overview=full&geometries=geojson"
+        )
+        try:
+            resposta = requests.get(url, timeout=5)
+            resposta.raise_for_status()
+            dados = resposta.json()
+        except (requests.exceptions.RequestException, ValueError):
+            return
 
-            url = (
-                f"https://router.project-osrm.org/route/v1/driving/"
-                f"{despacho.ambulancia.longitudeAtual},{despacho.ambulancia.latitudeAtual};{-47.911496},{-15.834400}"
-                f"?overview=full&geometries=geojson"
-            )
+        if not isinstance(dados, dict) or dados.get("code") != "Ok":
+            return
+        try:
+            pontos_da_rota = dados["routes"][0]["geometry"]["coordinates"]
+        except (KeyError, IndexError, TypeError):
+            return
+        if not isinstance(pontos_da_rota, list) or not pontos_da_rota:
+            return
+        if any(
+            not isinstance(ponto, list) or len(ponto) < 2
+            or not all(isinstance(coordenada, (int, float)) for coordenada in ponto[:2])
+            for ponto in pontos_da_rota
+        ):
+            return
 
-        resposta = requests.get(url)
+        timer = QTimer()
+        movimento = {"timer": timer, "index": 0, "despacho": despacho}
+        indice = next(
+            (i for i, item in enumerate(self.temporizadores_funcao) if item is None),
+            len(self.temporizadores_funcao),
+        )
+        if indice == len(self.temporizadores_funcao):
+            self.temporizadores_funcao.append(movimento)
+        else:
+            self.temporizadores_funcao[indice] = movimento
 
-        resposta.raise_for_status()
+        timer.timeout.connect(
+            lambda: self.__movimentar_ambulancia(pontos_da_rota, indice, movimento)
+        )
+        if self.mapa_carregado == 3:
+            timer.start(100)
 
-        dados = resposta.json()
+    def __movimentar_ambulancia(self, pontos_da_rota: list, indice: int, movimento: dict):
+        if self.temporizadores_funcao[indice] is not movimento:
+            return
 
-        if dados.get("code") == "Ok":
+        despacho = movimento["despacho"]
+        longitude, latitude = pontos_da_rota[movimento["index"]][:2]
+        despacho.ambulancia.atualizar_localizacao(latitude, longitude)
+        movimento["index"] += 1
+        if movimento["index"] < len(pontos_da_rota):
+            return
 
-            pontos_da_roda = dados["routes"][0]["geometry"]["coordinates"]
+        movimento["timer"].stop()
+        self.temporizadores_funcao[indice] = None
+        movimento["timer"].deleteLater()
 
-            timer = QTimer()
-            
-            index_temporizador_funcao = -1
-
-            for index, temporizador_funcao in enumerate(self.temporizadores_funcao):
-
-                if temporizador_funcao == None:
-                     index_temporizador_funcao = index
-
-            if index_temporizador_funcao != -1:
-
-                self.temporizadores_funcao[index_temporizador_funcao] = {"timer": timer, "index": 0}
-
-            else:
-
-                self.temporizadores_funcao.append({"timer": timer, "index": 0})
-
-                index_temporizador_funcao = (len(self.temporizadores_funcao) - 1)
-
-
-            timer.timeout.connect(lambda: self.__movimentar_ambulancia(despacho, pontos_da_roda, 
-                                                                       index_temporizador_funcao))
-            
-            if self.mapa_carregado == 3: timer.start(100)
-
-    def __movimentar_ambulancia(self, despacho: Despacho, pontos_da_rota: list, index_temporizadores_funcao: int):
-
-        pontos_da_rota_index = self.temporizadores_funcao[index_temporizadores_funcao]["index"]
-
-        despacho.ambulancia.atualizar_localizacao(
-            pontos_da_rota[pontos_da_rota_index][1], pontos_da_rota[pontos_da_rota_index][0])
-        
-        pontos_da_rota_index += 1
-
-        self.temporizadores_funcao[index_temporizadores_funcao]["index"] = pontos_da_rota_index
-
-        if pontos_da_rota_index >= len(pontos_da_rota):
-
-            self.temporizadores_funcao[index_temporizadores_funcao]["timer"].stop()
-
-            self.temporizadores_funcao[index_temporizadores_funcao] = None
-
-            if despacho.status == "EmTransito":
-
-                despacho.atualizar_hora_chegada_local()
-
-                self.gerenciador_eventos.emitir_evento("Ambulancia_retornar_hospital", despacho)
-
-            elif despacho.status == "Retornando":
-
-                self.gerenciador_eventos.emitir_evento("Ambulancia_chegou_no_hospital", despacho)
+        if despacho.status == Status.EMTRANSITO.value:
+            despacho.atualizar_hora_chegada_local()
+            self.gerenciador_eventos.emitir_evento("Ambulancia_retornar_hospital", despacho)
+        elif despacho.status == Status.RETORNANDO.value:
+            self.gerenciador_eventos.emitir_evento("Ambulancia_chegou_no_hospital", despacho)
