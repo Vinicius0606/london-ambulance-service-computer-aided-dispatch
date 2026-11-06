@@ -1,5 +1,6 @@
 from .interface_escolha_ambulancia import Interface_escolha_ambulancia
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
+from domain.Modulo_Chamada.endereco import normalizar_coordenadas
 import math
 
 class Escolher_ambulancia_hipotenusa(Interface_escolha_ambulancia):
@@ -8,6 +9,11 @@ class Escolher_ambulancia_hipotenusa(Interface_escolha_ambulancia):
                              latitude_chamado: float, longitude_chamado: float):
         
 
+        coordenadas_chamada = normalizar_coordenadas(latitude_chamado, longitude_chamado)
+        if coordenadas_chamada is None:
+            return {"ambulancias": [], "qtd_ambulancias": 0}
+        latitude_chamado, longitude_chamado = coordenadas_chamada
+
         hipotenusas = []
         ids_consultados = set()
 
@@ -15,13 +21,13 @@ class Escolher_ambulancia_hipotenusa(Interface_escolha_ambulancia):
 
             if ambulancia.status != "Disponivel" or ambulancia.id in ids_consultados:
                 continue
-            ids_consultados.add(ambulancia.id)
+            coordenadas = normalizar_coordenadas(ambulancia.latitudeAtual, ambulancia.longitudeAtual)
+            if coordenadas is None:
+                continue
 
-            hipotenusa = math.sqrt(
-            ((ambulancia.latitudeAtual - latitude_chamado) ** 2)
-            +
-            ((ambulancia.longitudeAtual - longitude_chamado) ** 2)
-            )
+            ids_consultados.add(ambulancia.id)
+            latitude, longitude = coordenadas
+            hipotenusa = math.hypot(latitude - latitude_chamado, longitude - longitude_chamado)
 
             hipotenusas.append({"ambulancia": ambulancia, "hipotenusa": hipotenusa})
 

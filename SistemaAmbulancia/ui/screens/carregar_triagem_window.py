@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QMovie, QIntValidator
 from typing import Callable
 from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem
+from domain.Modulo_Chamada.prioridade import Prioridade, normalizar_prioridade
 import re
 
 class Carregar_triagem_window(QMainWindow):
@@ -111,16 +112,12 @@ class Carregar_triagem_window(QMainWindow):
             }
         """)
         
-        prioridade_string = ""
-
-        if self.prioridade == 1: prioridade_string = "Transporte"
-        elif self.prioridade == 2: prioridade_string = "Moderada"
-        elif self.prioridade == 3: prioridade_string = "Alta"
-        else: prioridade_string = "Extrema"
-
-        combo_box_prioridade.addItems(["Transporte", "Moderada", "Alta", "Extrema"])
-
-        combo_box_prioridade.setCurrentText(prioridade_string)
+        combo_box_prioridade.addItems([prioridade.value for prioridade in Prioridade])
+        nivel = normalizar_prioridade(self.prioridade)
+        if nivel is None:
+            combo_box_prioridade.setCurrentIndex(-1)
+        else:
+            combo_box_prioridade.setCurrentText(nivel.value)
 
         label_qtd_ambulancias = QLabel("Quantidade de Ambulancias: ")
 

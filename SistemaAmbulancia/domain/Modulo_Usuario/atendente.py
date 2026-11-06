@@ -2,7 +2,7 @@ from .usuario import Usuario
 from .tipoUsuario import TipoUsuario
 from events.gerenciador_eventos import Gerenciador_eventos
 from domain.Modulo_Chamada.chamada import Chamada
-from domain.Modulo_Chamada.endereco import Endereco
+from domain.Modulo_Chamada.endereco import Endereco, normalizar_coordenadas
 from datetime import datetime
 
 class Atendente(Usuario):
@@ -20,8 +20,16 @@ class Atendente(Usuario):
 
     def registrarChamada(self, info_chamada: dict):
 
-        endereco = Endereco(info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"], info_chamada["cidade"], 
-                            info_chamada["estado"], info_chamada["latitude"], info_chamada["longitude"], info_chamada["complemento"], info_chamada["numero"])
+        coordenadas = normalizar_coordenadas(info_chamada.get("latitude"), info_chamada.get("longitude"))
+        if coordenadas is None:
+            raise ValueError("Informe coordenadas válidas para registrar a chamada.")
+
+        latitude, longitude = coordenadas
+        endereco = Endereco(
+            info_chamada["cep"], info_chamada["logradouro"], info_chamada["bairro"],
+            info_chamada["cidade"], info_chamada["estado"], latitude, longitude,
+            info_chamada["complemento"], info_chamada["numero"],
+        )
 
         chamada = Chamada(endereco, info_chamada["descricao"], self.gerenciador_eventos , id=self.chamada_id_registrada, 
                     nome_solicitante=info_chamada["nome"])
