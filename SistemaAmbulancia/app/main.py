@@ -4,10 +4,12 @@ from services.Modulo_Mapa.mapa import Mapa
 from services.Modulo_Banco_Dados.conexao_BD import Conexao_BD
 from ui.gerenciador_telas import Gerenciador_telas
 from events.gerenciador_eventos import Gerenciador_eventos
-from domain.Modulo_Triagem.triagem import Triagem
+from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem, Triagem
 from domain.Modulo_Triagem.IATriagem import IATriagem
 from domain.Modulo_Chamada.chamada import Chamada
+from domain.Modulo_Chamada.prioridade import Prioridade
 from domain.Modulo_Chamada.status import Status
+from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 from domain.Modulo_Ambulancia.atendimento import Atendimento
 from domain.Modulo_Usuario.atendente import Atendente
 from app.simulacao import Simulacao
@@ -66,25 +68,51 @@ class Sistema_principal:
         self.chamadas.insert(0, chamada)
 
     def criar_atendimento(self, dados_triagem):
+        triagem_id = dados_triagem.get("id")
+        chamada = next(
+            (chamada for triagem, chamada in self.triagens_esperando_confirmacao
+             if triagem.id == triagem_id),
+            None,
+        )
+        if chamada is None or chamada not in self.chamadas or chamada.status != Status.PENDENTE.value:
+            raise ErroConfirmacaoTriagem("A chamada precisa estar pendente para ser alocada.")
 
-        chamada = None
+        prioridade = dados_triagem.get("prioridade")
+        if prioridade not in (opcao.value for opcao in Prioridade):
+            raise ErroConfirmacaoTriagem("Selecione uma prioridade válida.")
 
-        for triagem_chamada in self.triagens_esperando_confirmacao:
+        quantidade = dados_triagem.get("qtd_ambulancias")
+        ambulancias = dados_triagem.get("ambulancias")
+        if (
+            type(quantidade) is not int or quantidade <= 0
+            or not isinstance(ambulancias, list) or len(ambulancias) != quantidade
+        ):
+            raise ErroConfirmacaoTriagem("A quantidade deve corresponder às ambulâncias selecionadas.")
+        if not all(isinstance(ambulancia, Ambulancia) for ambulancia in ambulancias):
+            raise ErroConfirmacaoTriagem("Selecione ambulâncias válidas.")
 
-            if triagem_chamada[0].id == dados_triagem["id"]:
+        ids_selecionados = {ambulancia.id for ambulancia in ambulancias}
+        if len(ids_selecionados) != quantidade:
+            raise ErroConfirmacaoTriagem("Selecione cada ambulância uma única vez.")
 
-                chamada = triagem_chamada[1]
-                chamada.atualizar_dados(dados_triagem["prioridade"], 'Alocado')
-                
-                break
+        disponiveis = {
+            ambulancia.id: ambulancia for ambulancia in self.ambulancias
+            if ambulancia.status == "Disponivel"
+        }
+        if quantidade > len(disponiveis):
+            raise ErroConfirmacaoTriagem("A frota disponível é insuficiente para essa quantidade.")
+        if not ids_selecionados.issubset(disponiveis):
+            raise ErroConfirmacaoTriagem("Uma ou mais ambulâncias selecionadas estão indisponíveis.")
 
-        atendimento = Atendimento(self.id_atendimento, chamada, dados_triagem["qtd_ambulancias"], 
-                                  dados_triagem["ambulancias"], self.gerenciador_eventos)
-
+        ambulancias_alocadas = [disponiveis[ambulancia.id] for ambulancia in ambulancias]
+        chamada.atualizar_dados(prioridade, Status.ALOCADO.value)
+        atendimento = Atendimento(
+            self.id_atendimento, chamada, quantidade,
+            ambulancias_alocadas, self.gerenciador_eventos,
+        )
         self.id_atendimento -= 1
 
         atendimento.criar_despachos()
-
         self.atendimentos_andamento.append(atendimento)
 
     def iniciar_telas(self):
