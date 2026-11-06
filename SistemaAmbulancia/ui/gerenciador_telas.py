@@ -6,7 +6,7 @@ from ui.screens.aceitar_chamada_window import Aceitar_Chamada_Window
 from ui.screens.carregar_triagem_window import Carregar_triagem_window
 from services.Modulo_Mapa.mapa import Mapa
 from events.gerenciador_eventos import Gerenciador_eventos
-from domain.Modulo_Triagem.triagem import Triagem
+from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem, Triagem
 from domain.Modulo_Ambulancia.ambulancia import Ambulancia
 
 class Gerenciador_telas:
@@ -92,7 +92,8 @@ class Gerenciador_telas:
         self.confirmar_triagem_window = Carregar_triagem_window(carregando=False, prioridade=triagem.prioridade, 
                         qtd_ambulancias=triagem.qtdAmbulancias, placas_ambulancias=placas_ambulancias, 
                         funcao_verificar_ambulancias=self.analisar_ambulancias, 
-                        funcao_disparar_evento=self.disparar_evento, triagem_id=triagem.id)
+                        funcao_disparar_evento=self.disparar_evento, triagem_id=triagem.id,
+                        qtd_ambulancias_solicitada=triagem.qtd_ambulancias_solicitada)
 
         self.confirmar_triagem_window.show()
 
@@ -116,23 +117,28 @@ class Gerenciador_telas:
 
                 card["card"].deleteLater()
 
-    def analisar_ambulancias(self, placas_ambulancias: list[str]):
+    def analisar_ambulancias(self, placas_ambulancias: list[str], quantidade: int):
+        placas = [placa.strip().upper() for placa in placas_ambulancias]
+        if len(set(placas)) != len(placas):
+            raise ErroConfirmacaoTriagem("Digite cada placa uma única vez.")
 
-        ambulancias_alocadas: list[Ambulancia] = []
+        por_placa = {ambulancia.placa.strip().upper(): ambulancia for ambulancia in self.ambulancias}
+        ids_disponiveis = {
+            ambulancia.id for ambulancia in por_placa.values()
+            if ambulancia.status == "Disponivel"
+        }
+        if quantidade > len(ids_disponiveis):
+            raise ErroConfirmacaoTriagem("A frota disponível é insuficiente para essa quantidade.")
+        if len(placas) != quantidade:
+            raise ErroConfirmacaoTriagem("A quantidade deve corresponder ao número de placas.")
 
-        for placa in placas_ambulancias:
-
-            existe_ambulancia = False
-
-            for ambulancia in self.ambulancias:
-
-                if ambulancia.placa == placa:
-                    
-                    existe_ambulancia = True
-                    ambulancias_alocadas.append(ambulancia)
-
-                    break
-
-            if not existe_ambulancia: return None
+        ambulancias_alocadas = []
+        for placa in placas:
+            ambulancia = por_placa.get(placa)
+            if ambulancia is None:
+                raise ErroConfirmacaoTriagem(f"Placa inexistente ({placa}).")
+            if ambulancia.status != "Disponivel":
+                raise ErroConfirmacaoTriagem(f"A ambulância de placa {placa} está indisponível.")
+            ambulancias_alocadas.append(ambulancia)
 
         return ambulancias_alocadas

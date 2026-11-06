@@ -8,13 +8,14 @@ class Escolher_ambulancia_hipotenusa(Interface_escolha_ambulancia):
                              latitude_chamado: float, longitude_chamado: float):
         
 
-        lista_ambulancias_para_alocar = []
-
         hipotenusas = []
+        ids_consultados = set()
 
         for ambulancia in ambulancias:
 
-            if ambulancia.status != "Disponivel": continue
+            if ambulancia.status != "Disponivel" or ambulancia.id in ids_consultados:
+                continue
+            ids_consultados.add(ambulancia.id)
 
             hipotenusa = math.sqrt(
             ((ambulancia.latitudeAtual - latitude_chamado) ** 2)
@@ -26,9 +27,11 @@ class Escolher_ambulancia_hipotenusa(Interface_escolha_ambulancia):
 
         hipotenusas.sort(key=lambda hipotenusa: hipotenusa["hipotenusa"])
 
-        lista_ambulancias_para_alocar = [ambulancia_hipotenusa["ambulancia"] for ambulancia_hipotenusa in hipotenusas[:qtd_vitimas]]
+        lista_ambulancias_para_alocar = [
+            candidata["ambulancia"] for candidata in hipotenusas[:max(0, qtd_vitimas)]
+        ]
 
         return {
             "ambulancias": lista_ambulancias_para_alocar,
-            "qtd_ambulancias": qtd_vitimas
+            "qtd_ambulancias": len(lista_ambulancias_para_alocar)
         }

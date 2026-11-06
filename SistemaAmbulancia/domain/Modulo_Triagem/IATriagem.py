@@ -112,8 +112,11 @@ class IATriagem(QThread):
 
         prioridade = self.tipo_definir_prioridade.definir_prioridade(ocorrencia)
 
-        ambulancia_info = self.tipo_escolher_ambulancia.escolher_ambulancias(self.ambulancias, ocorrencia["quantidade_vitimas"], 
-                                                                             self.latitude_do_chamado, self.longitude_do_chamado)
+        qtd_ambulancias_solicitada = ocorrencia["quantidade_vitimas"]
+        ambulancia_info = self.tipo_escolher_ambulancia.escolher_ambulancias(
+            self.ambulancias, qtd_ambulancias_solicitada,
+            self.latitude_do_chamado, self.longitude_do_chamado,
+        )
 
         qtd_ambulancias = ambulancia_info["qtd_ambulancias"]
 
@@ -122,6 +125,7 @@ class IATriagem(QThread):
         triagem_dict = {
             "prioridade": prioridade,
             "qtd_ambulancias": qtd_ambulancias,
+            "qtd_ambulancias_solicitada": qtd_ambulancias_solicitada,
             "ambulancias": ambulancias
         }
 

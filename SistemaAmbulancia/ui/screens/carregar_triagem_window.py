@@ -3,13 +3,15 @@ QVBoxLayout, QPushButton, QComboBox, QLineEdit, QMessageBox)
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QMovie, QIntValidator
 from typing import Callable
+from domain.Modulo_Triagem.triagem import ErroConfirmacaoTriagem
 import re
 
 class Carregar_triagem_window(QMainWindow):
 
     def __init__(self, carregando: bool, prioridade:str = None , qtd_ambulancias:int = None, 
                  placas_ambulancias: list = None, funcao_verificar_ambulancias: Callable = None, 
-                 funcao_disparar_evento: Callable = None, triagem_id: int = None):
+                 funcao_disparar_evento: Callable = None, triagem_id: int = None,
+                 qtd_ambulancias_solicitada: int | None = None):
         super().__init__()
 
         tela_usuario_tamanho = QApplication.instance().primaryScreen().size()
@@ -19,6 +21,7 @@ class Carregar_triagem_window(QMainWindow):
 
         self.prioridade = prioridade
         self.qtd_ambulancias = qtd_ambulancias
+        self.qtd_ambulancias_solicitada = qtd_ambulancias_solicitada
         self.placas_ambulancias = placas_ambulancias
         self.triagem_id = triagem_id
 
@@ -164,8 +167,8 @@ class Carregar_triagem_window(QMainWindow):
         """)
 
         botao_confirmar.clicked.connect(lambda: self.__enviar_dados_inseridos(
-                    combo_box_prioridade.currentText(), int(input_qtd_ambulancias.text()), 
-                    input_ambulancias.text(), input_ambulancias))
+                    combo_box_prioridade.currentText(), input_qtd_ambulancias.text(),
+                    input_ambulancias.text()))
 
         layout.addWidget(label_prioridade, 1)
         layout.addWidget(combo_box_prioridade, 2, alignment=Qt.AlignTop)
@@ -173,46 +176,52 @@ class Carregar_triagem_window(QMainWindow):
         layout.addWidget(input_qtd_ambulancias, 2, alignment=Qt.AlignTop)
         layout.addWidget(label_placa_ambulancias, 1)
         layout.addWidget(input_ambulancias, 2, alignment=Qt.AlignTop)
+        if (
+            self.qtd_ambulancias_solicitada is not None
+            and self.qtd_ambulancias_solicitada > self.qtd_ambulancias
+        ):
+            aviso = QLabel(
+                f"Frota insuficiente. Há {self.qtd_ambulancias} de "
+                f"{self.qtd_ambulancias_solicitada} veículos solicitados disponíveis."
+            )
+            aviso.setWordWrap(True)
+            layout.addWidget(aviso, 1)
+
         layout.addWidget(botao_confirmar, 1)
 
         div.setLayout(layout)
 
         return div
 
-    def __enviar_dados_inseridos(self, prioridade: str, qtd_ambulancias: int, 
-                                 placas_das_ambulancias: str, input_ambulancias: QLineEdit):
+    def __enviar_dados_inseridos(self, prioridade: str, quantidade_digitada: str,
+                                 placas_das_ambulancias: str):
+        titulo = "Confirmação de triagem"
+        try:
+            quantidade = int(quantidade_digitada)
+        except ValueError:
+            quantidade = 0
 
-        placas_das_ambulancias_lista = re.split(r"[ ,;|]+", placas_das_ambulancias)
-
-        placas_das_ambulancias_lista_corrigidas = []
-
-        for placa in placas_das_ambulancias_lista:
-
-            placas_das_ambulancias_lista_corrigidas.append((placa.strip()))
-
-            if(qtd_ambulancias == 1): break
-
-        ambulancias_objetos = self.funcao_verificar_ambulancias(placas_das_ambulancias_lista_corrigidas)
-
-        if not ambulancias_objetos:
-            
-            input_ambulancias.setStyleSheet("""
-                        border: 2px solid red; 
-                        padding: 10px
-                    """)
-
-            QMessageBox.warning(self, "Placas Inexistente", "Digite placas de ambulâncias validas!!")
-
+        if quantidade <= 0:
+            QMessageBox.warning(self, titulo, "Digite uma quantidade inteira maior que zero.")
             return
-        
-        dados_triagem = {
-            "id": self.triagem_id,
-            "prioridade": prioridade,
-            "qtd_ambulancias": qtd_ambulancias,
-            "ambulancias": ambulancias_objetos
-        }
+
+        placas = [placa for placa in re.split(r"[\s,;|]+", placas_das_ambulancias) if placa]
+        if not prioridade.strip() or not placas:
+            QMessageBox.warning(self, titulo, "Preencha a prioridade e as placas das ambulâncias.")
+            return
+
+        try:
+            ambulancias = self.funcao_verificar_ambulancias(placas, quantidade)
+            dados_triagem = {
+                "id": self.triagem_id,
+                "prioridade": prioridade,
+                "qtd_ambulancias": quantidade,
+                "ambulancias": ambulancias,
+            }
+            self.funcao_disparar_evento("Triagem_analisada", dados_triagem)
+        except ErroConfirmacaoTriagem as erro:
+            QMessageBox.warning(self, titulo, str(erro))
+            return
 
         self.close()
-
-        self.funcao_disparar_evento("Triagem_analisada", dados_triagem)
 
