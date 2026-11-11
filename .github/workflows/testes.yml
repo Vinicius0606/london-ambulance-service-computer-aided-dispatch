@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependências de teste
-        run: python -m pip install -r requirements-dev.txt
+        run: 'python -m pip install --require-hashes --only-binary :all: -r requirements-ci.lock'
 
       - name: Executar testes e medir cobertura
         run: python -m pytest -v --cov --cov-report=term
