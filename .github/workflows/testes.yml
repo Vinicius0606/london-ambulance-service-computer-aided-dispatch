@@ -1,0 +1,30 @@
+name: Testes automatizados
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Testes de triagem e despacho
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SistemaAmbulancia
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v6
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências de teste
+        run: 'python -m pip install --require-hashes --only-binary :all: -r requirements-ci.lock'
+
+      - name: Executar testes e medir cobertura
+        run: python -m pytest -v --cov --cov-report=term
